@@ -1,0 +1,80 @@
+import { createContext, ReactNode, useContext, useState } from "react";
+
+export enum Tool {
+  // General
+  Move = "move",
+  ZoomIn = "zoomIn",
+  ZoomOut = "zoomOut",
+  // Vector
+  Drag = "drag",
+  Remove = "remove",
+  Rectangle = "rectangle",
+  Circle = "circle",
+  Line = "line",
+  Polygon = "polygon",
+  // Raster
+  Brush = "brush",
+  Eraser = "eraser",
+  Floodfill = "floodfill",
+  Clear = "clear",
+}
+
+export interface Color {
+  r: number;
+  g: number;
+  b: number;
+  a: number;
+}
+
+export enum BrushShape {
+  Square = "square",
+  Circle = "circle",
+}
+
+interface IToolContext {
+  selectedTool: Tool;
+  setSelectedTool: React.Dispatch<React.SetStateAction<Tool>>;
+  drawColor: Color;
+  setDrawColor: React.Dispatch<React.SetStateAction<Color>>;
+  toolSize: number;
+  setToolSize: React.Dispatch<React.SetStateAction<number>>;
+  brushShape: BrushShape;
+  setBrushShape: React.Dispatch<React.SetStateAction<BrushShape>>;
+}
+
+const ToolContext = createContext<IToolContext | null>(null);
+
+const ToolProvider = ({ children }: { children: ReactNode }) => {
+  const [selectedTool, setSelectedTool] = useState<Tool>(Tool.Move);
+  const [drawColor, setDrawColor] = useState({ r: 0, g: 0, b: 0, a: 1.0 });
+  const [toolSize, setToolSize] = useState(10);
+  const [brushShape, setBrushShape] = useState(BrushShape.Circle);
+
+  return (
+    <ToolContext.Provider
+      value={{
+        selectedTool,
+        setSelectedTool,
+        drawColor,
+        setDrawColor,
+        toolSize,
+        setToolSize,
+        brushShape,
+        setBrushShape,
+      }}
+    >
+      {children}
+    </ToolContext.Provider>
+  );
+};
+
+function useTool() {
+  const context = useContext(ToolContext);
+  if (context === null) {
+    throw "No provider for ToolContext";
+  }
+
+  return context;
+}
+
+export { ToolProvider, useTool };
