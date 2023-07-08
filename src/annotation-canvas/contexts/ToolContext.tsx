@@ -7,6 +7,7 @@ export enum Tool {
   ZoomOut = "zoomOut",
   // Vector
   Drag = "drag",
+  Edit = "edit",
   Remove = "remove",
   Rectangle = "rectangle",
   Circle = "circle",

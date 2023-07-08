@@ -1,0 +1,15 @@
+# dependencies
+/node_modules
+
+# production
+/.parcel-cache
+/dist
+
+# misc
+/.npmrc
+/.env
+/Dockerfile
+/nginx.conf
+/.dockerignore
+/.package-app.json
+/backend

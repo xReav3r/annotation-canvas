@@ -203,6 +203,9 @@ function VectorTools() {
       <Button onClick={() => setSelectedTool(Tool.Drag)} disabled={selectedTool === Tool.Drag}>
         Drag
       </Button>
+      <Button onClick={() => setSelectedTool(Tool.Edit)} disabled={selectedTool === Tool.Edit}>
+        Edit
+      </Button>
       <Button onClick={() => setSelectedTool(Tool.Remove)} disabled={selectedTool === Tool.Remove}>
         Remove
       </Button>

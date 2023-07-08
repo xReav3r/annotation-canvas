@@ -1,4 +1,4 @@
 const config = {
-  backendUrl: "/data-service/",
+  backendUrl: "http://localhost:3000/data-service/",
 };
 export default config;

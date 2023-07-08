@@ -85,7 +85,7 @@ function Layers() {
               {...provided.droppableProps}
               ref={provided.innerRef}
               style={{
-                background: snapshot.isDraggingOver ? colors.blue[100] : undefined,
+                background: snapshot.isDraggingOver ? "#bbdefb" : undefined,
                 padding: 8,
                 width: 250,
                 display: "flex",
@@ -108,7 +108,7 @@ function Layers() {
                         gap: 4,
                         userSelect: "none",
                         padding: 16,
-                        background: snapshot.isDragging ? colors.green[100] : undefined,
+                        background: snapshot.isDragging ? "#c8e6c9" : undefined,
 
                         ...provided.draggableProps.style,
                       }}

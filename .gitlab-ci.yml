@@ -1,0 +1,24 @@
+stages:
+  - build
+  - deploy
+
+npm_build:
+  image: node:18-alpine
+  stage: build
+  script:
+    - npm i
+    - npm run build
+  artifacts:
+    untracked: true
+  interruptible: true
+
+npm_registry:
+  image: node:18-alpine
+  stage: deploy
+  script:
+    - echo `//registry.npmjs.org/:_authToken=$NPM_TOKEN` > .npmrc
+    - npm publish
+  needs:
+    # To get build result artefact
+    - job: npm_build
+  interruptible: true
