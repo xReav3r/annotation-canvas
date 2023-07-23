@@ -94,7 +94,7 @@ function DownloadedRasterLayer({
                   tileHeight,
                 );
                 let pixels = imgData.data;
-                if (coloring.length === 255)
+                if (coloring.length === 256)
                   for (let i = 0; i < pixels.length; i += 4) {
                     pixels[i + 3] = pixels[i]; // Alpha
                     pixels[i + 2] = coloring[pixels[i]][2]; // Blue
