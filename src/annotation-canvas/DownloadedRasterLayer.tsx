@@ -95,19 +95,19 @@ function DownloadedRasterLayer({
                 );
                 let pixels = imgData.data;
                 if (coloring.length === 255)
-                for (let i = 0; i < pixels.length; i += 4) {
-                  pixels[i + 3] = pixels[i]; // Alpha
-                  pixels[i + 2] = coloring[pixels[i]][2]; // Blue
-                  pixels[i + 1] = coloring[pixels[i]][1]; // Green
-                  pixels[i] = coloring[pixels[i]][0]; // Red
-                }
+                  for (let i = 0; i < pixels.length; i += 4) {
+                    pixels[i + 3] = pixels[i]; // Alpha
+                    pixels[i + 2] = coloring[pixels[i]][2]; // Blue
+                    pixels[i + 1] = coloring[pixels[i]][1]; // Green
+                    pixels[i] = coloring[pixels[i]][0]; // Red
+                  }
                 if (coloring.length === 1)
-                for (let i = 0; i < pixels.length; i += 4) {
-                  pixels[i + 3] = pixels[i]; // Alpha
-                  pixels[i + 2] = coloring[0][2]; // Blue
-                  pixels[i + 1] = coloring[0][1]; // Green
-                  pixels[i] = coloring[0][0]; // Red
-                }
+                  for (let i = 0; i < pixels.length; i += 4) {
+                    pixels[i + 3] = pixels[i]; // Alpha
+                    pixels[i + 2] = coloring[0][2]; // Blue
+                    pixels[i + 1] = coloring[0][1]; // Green
+                    pixels[i] = coloring[0][0]; // Red
+                  }
                 ctx.putImageData(imgData, tileX * tileSize, tileY * tileSize);
               }
               const hatching = layer.data.hatching;
@@ -152,7 +152,15 @@ function DownloadedRasterLayer({
       controller.abort();
       urlObjects.current.forEach((urlObject) => URL.revokeObjectURL(urlObject));
     };
-  }, [viewport, rasterWidth, rasterHeight, stageWidth, stageHeight, layer.data.hatching]);
+  }, [
+    viewport,
+    rasterWidth,
+    rasterHeight,
+    stageWidth,
+    stageHeight,
+    layer.data.hatching,
+    layer.data.coloring,
+  ]);
 
   // No tiling
   useEffect(() => {
