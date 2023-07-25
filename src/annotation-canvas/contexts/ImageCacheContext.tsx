@@ -12,7 +12,7 @@ export type GetImage = (
   signal?: AbortSignal,
 ) => Promise<Blob | null>;
 
-export type GetTile = (
+export type GetImageCached = (
   getImage: GetImage,
   x: number,
   y: number,
@@ -25,7 +25,7 @@ export type GetTile = (
 ) => Promise<ImageBitmap | null>;
 
 interface IImageCacheContext {
-  getTile: GetTile;
+  getImageCached: GetImageCached;
 }
 
 const ImageCacheContext = createContext<IImageCacheContext | null>(null);
@@ -49,7 +49,7 @@ const ImageCacheProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  async function getTile(
+  async function getImageCached(
     getImage: GetImage,
     x: number,
     y: number,
@@ -99,7 +99,7 @@ const ImageCacheProvider = ({ children }: { children: ReactNode }) => {
   return (
     <ImageCacheContext.Provider
       value={{
-        getTile,
+        getImageCached,
       }}
     >
       {children}

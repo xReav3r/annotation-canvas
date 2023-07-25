@@ -144,9 +144,13 @@ interface ILayersContext {
   setSelectedLayer: React.Dispatch<React.SetStateAction<number>>;
   selectedLayerType: LayerType | undefined;
 
-  downloadedRasterLevelSize: number; // Scale interval between tile levels
-  downloadedRasterMinTilesCount: number; // Minimal tile count on bigger side of viewport
-  downloadedRasterDrawAtOnce: boolean;
+  tiling:
+    | undefined
+    | {
+        downloadedRasterLevelSize: number; // Scale interval between tile levels
+        downloadedRasterMinTilesCount: number; // Minimal tile count on bigger side of viewport
+        downloadedRasterDrawAtOnce: boolean;
+      };
 
   createLayer: (layer: Layer) => void;
   setLayerByIndex: (index: number, value: ((prev: Layer) => Layer) | Layer) => void;
@@ -172,9 +176,7 @@ const LayersProvider = ({
   layers,
   setLayers,
   defaultLayers,
-  downloadedRasterLevelSize = 0.25,
-  downloadedRasterMinTilesCount = 3,
-  downloadedRasterDrawAtOnce = true,
+  tiling,
 }: {
   children: ReactNode;
   rasterWidth: number;
@@ -182,9 +184,11 @@ const LayersProvider = ({
   layers?: Layer[];
   setLayers?: React.Dispatch<React.SetStateAction<Layer[]>>;
   defaultLayers?: Layer[];
-  downloadedRasterLevelSize?: number;
-  downloadedRasterMinTilesCount?: number;
-  downloadedRasterDrawAtOnce?: boolean;
+  tiling?: {
+    downloadedRasterLevelSize: number;
+    downloadedRasterMinTilesCount: number;
+    downloadedRasterDrawAtOnce: boolean;
+  };
 }) => {
   // Controlled and uncontrolled layers support
   if (layers !== undefined && setLayers !== undefined && defaultLayers !== undefined) {
@@ -532,9 +536,7 @@ const LayersProvider = ({
         setSelectedLayer,
         selectedLayerType,
 
-        downloadedRasterLevelSize,
-        downloadedRasterMinTilesCount,
-        downloadedRasterDrawAtOnce,
+        tiling,
 
         createLayer,
         setLayerByIndex,

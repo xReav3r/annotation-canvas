@@ -201,9 +201,11 @@ function App() {
         <LayersProvider
           rasterWidth={rasterWidth}
           rasterHeight={rasterHeight}
-          downloadedRasterLevelSize={0.25}
-          downloadedRasterMinTilesCount={3}
-          downloadedRasterDrawAtOnce={true}
+          tiling={{
+            downloadedRasterLevelSize: 0.25,
+            downloadedRasterMinTilesCount: 3,
+            downloadedRasterDrawAtOnce: true,
+          }}
           layers={layers}
           setLayers={setLayers}
         >

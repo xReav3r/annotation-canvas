@@ -31,9 +31,8 @@ function DownloadedRasterLayer({
 
   const timer = useRef<NodeJS.Timeout>();
 
-  const { getTile } = useImageCache();
-  const { downloadedRasterLevelSize, downloadedRasterMinTilesCount, downloadedRasterDrawAtOnce } =
-    useLayers();
+  const { getImageCached } = useImageCache();
+  const { tiling } = useLayers();
 
   // Tiling
   useEffect(() => {
@@ -43,109 +42,139 @@ function DownloadedRasterLayer({
       const ctx = canvasRef.current.getContext("2d", {
         willReadFrequently: true,
       });
-      if (ctx === null) throw "DownloadedRasterLayer ctx - null";
-      const initScale = Math.min(stageWidth / rasterWidth, stageHeight / rasterHeight);
-      const boundedScale = Math.max(Math.min(scale, 1.0 - downloadedRasterLevelSize), initScale);
 
-      const currentLevelScale =
-        Math.trunc(boundedScale / downloadedRasterLevelSize) * downloadedRasterLevelSize +
-        downloadedRasterLevelSize;
-
-      const tileSizeStage = Math.ceil(
-        Math.max(stageWidth, stageHeight) / downloadedRasterMinTilesCount,
-      );
-      const tileSize = Math.ceil(tileSizeStage / currentLevelScale);
-
-      const promises: Promise<undefined>[] = [];
-      for (
-        let tileX = Math.trunc(viewport.x1 / tileSize);
-        tileX <= Math.trunc(viewport.x2 / tileSize);
-        tileX++
+      function drawBitmap(
+        bitmap: null | ImageBitmap,
+        bitmapX: number,
+        bitmapY: number,
+        bitmapWidth: number,
+        bitmapHeight: number,
       ) {
-        for (
-          let tileY = Math.trunc(viewport.y1 / tileSize);
-          tileY <= Math.trunc(viewport.y2 / tileSize);
-          tileY++
-        ) {
-          const tileWidth = Math.min(rasterWidth - tileSize * tileX, tileSize);
-          const tileHeight = Math.min(rasterHeight - tileSize * tileY, tileSize);
+        if (ctx === null) throw "DownloadedRasterLayer ctx - null";
 
-          const promise = new Promise<undefined>((resolve) => {
-            getTile(
-              layer.data.getImage as GetImage,
-              tileX * tileSize,
-              tileY * tileSize,
-              tileWidth,
-              tileHeight,
-              Math.ceil(tileWidth * currentLevelScale),
-              Math.ceil(tileHeight * currentLevelScale),
-              controller.signal,
-              layer.id,
-            ).then((bitmap) => {
-              if (bitmap === null) return;
-              ctx.clearRect(tileX * tileSize, tileY * tileSize, tileWidth, tileHeight);
-              ctx.drawImage(bitmap, tileX * tileSize, tileY * tileSize, tileWidth, tileHeight);
-              const coloring = layer.data.coloring;
-              if (coloring) {
-                let imgData = ctx.getImageData(
-                  tileX * tileSize,
-                  tileY * tileSize,
-                  tileWidth,
-                  tileHeight,
-                );
-                let pixels = imgData.data;
-                if (coloring.length === 256)
-                  for (let i = 0; i < pixels.length; i += 4) {
-                    pixels[i + 3] = pixels[i]; // Alpha
-                    pixels[i + 2] = coloring[pixels[i]][2]; // Blue
-                    pixels[i + 1] = coloring[pixels[i]][1]; // Green
-                    pixels[i] = coloring[pixels[i]][0]; // Red
-                  }
-                if (coloring.length === 1)
-                  for (let i = 0; i < pixels.length; i += 4) {
-                    pixels[i + 3] = pixels[i]; // Alpha
-                    pixels[i + 2] = coloring[0][2]; // Blue
-                    pixels[i + 1] = coloring[0][1]; // Green
-                    pixels[i] = coloring[0][0]; // Red
-                  }
-                ctx.putImageData(imgData, tileX * tileSize, tileY * tileSize);
-              }
-              const hatching = layer.data.hatching;
-              if (hatching) {
-                let imgData = ctx.getImageData(
-                  tileX * tileSize,
-                  tileY * tileSize,
-                  tileWidth,
-                  tileHeight,
-                );
-                let pixels = imgData.data;
+        if (bitmap === null) return;
+        ctx.clearRect(bitmapX, bitmapY, bitmapWidth, bitmapHeight);
+        ctx.drawImage(bitmap, bitmapX, bitmapY, bitmapWidth, bitmapHeight);
+        const coloring = layer.data.coloring;
+        if (coloring) {
+          let imgData = ctx.getImageData(bitmapX, bitmapY, bitmapWidth, bitmapHeight);
+          let pixels = imgData.data;
+          if (coloring.length === 256)
+            for (let i = 0; i < pixels.length; i += 4) {
+              pixels[i + 3] = pixels[i]; // Alpha
+              pixels[i + 2] = coloring[pixels[i]][2]; // Blue
+              pixels[i + 1] = coloring[pixels[i]][1]; // Green
+              pixels[i] = coloring[pixels[i]][0]; // Red
+            }
+          if (coloring.length === 1)
+            for (let i = 0; i < pixels.length; i += 4) {
+              pixels[i + 3] = pixels[i]; // Alpha
+              pixels[i + 2] = coloring[0][2]; // Blue
+              pixels[i + 1] = coloring[0][1]; // Green
+              pixels[i] = coloring[0][0]; // Red
+            }
+          ctx.putImageData(imgData, bitmapX, bitmapY);
+        }
+        const hatching = layer.data.hatching;
+        if (hatching) {
+          let imgData = ctx.getImageData(bitmapX, bitmapY, bitmapWidth, bitmapHeight);
+          let pixels = imgData.data;
 
-                for (let i = 0; i < pixels.length; i += 4) {
-                  const pixel = i / 4;
-                  const x = (pixel % tileWidth) + tileX * tileSize;
-                  const y = Math.floor(pixel / tileWidth) + tileY * tileSize;
-                  if ((x + y) % (hatching.blankWidth + hatching.maskWidth) >= hatching.maskWidth) {
-                    pixels[i + 3] = 0; // Alpha
-                  }
-                }
-                ctx.putImageData(imgData, tileX * tileSize, tileY * tileSize);
-              }
-              resolve(undefined);
-              if (!downloadedRasterDrawAtOnce) {
-                layerRef.current?.batchDraw();
-              }
-            });
-          });
-          promises.push(promise);
+          for (let i = 0; i < pixels.length; i += 4) {
+            const pixel = i / 4;
+            const x = (pixel % bitmapWidth) + bitmapX;
+            const y = Math.floor(pixel / bitmapWidth) + bitmapY;
+            if ((x + y) % (hatching.blankWidth + hatching.maskWidth) >= hatching.maskWidth) {
+              pixels[i + 3] = 0; // Alpha
+            }
+          }
+          ctx.putImageData(imgData, bitmapX, bitmapY);
         }
       }
-      if (downloadedRasterDrawAtOnce) {
-        await Promise.all(promises);
+
+      const initScale = Math.min(stageWidth / rasterWidth, stageHeight / rasterHeight);
+
+      if (tiling === undefined) {
+        if (layer.data.getImage === undefined) throw "DownloadedRasterLayer getImage - undefined";
+        const x = viewport.x1;
+        const y = viewport.y1;
+        const width = viewport.x2 - viewport.x1;
+        const height = viewport.y2 - viewport.y1;
+
+        const boundedScale = Math.max(Math.min(scale, 1.0), initScale);
+        const blob = await layer.data.getImage(
+          x,
+          y,
+          width,
+          height,
+          Math.ceil(width * boundedScale),
+          Math.ceil(height * boundedScale),
+        );
+        if (blob === null) return;
+        const bitmap = await createImageBitmap(blob);
+        drawBitmap(bitmap, x, y, width, height);
         layerRef.current?.batchDraw();
+        
+      } else {
+        const boundedScale = Math.max(
+          Math.min(scale, 1.0 - tiling.downloadedRasterLevelSize),
+          initScale,
+        );
+
+        const currentLevelScale =
+          Math.trunc(boundedScale / tiling.downloadedRasterLevelSize) *
+            tiling.downloadedRasterLevelSize +
+          tiling.downloadedRasterLevelSize;
+
+        const tileSizeStage = Math.ceil(
+          Math.max(stageWidth, stageHeight) / tiling.downloadedRasterMinTilesCount,
+        );
+        const tileSize = Math.ceil(tileSizeStage / currentLevelScale);
+
+        const promises: Promise<undefined>[] = [];
+        for (
+          let tileX = Math.trunc(viewport.x1 / tileSize);
+          tileX <= Math.trunc(viewport.x2 / tileSize);
+          tileX++
+        ) {
+          for (
+            let tileY = Math.trunc(viewport.y1 / tileSize);
+            tileY <= Math.trunc(viewport.y2 / tileSize);
+            tileY++
+          ) {
+            const tileWidth = Math.min(rasterWidth - tileSize * tileX, tileSize);
+            const tileHeight = Math.min(rasterHeight - tileSize * tileY, tileSize);
+
+            const promise = new Promise<undefined>((resolve) => {
+              getImageCached(
+                layer.data.getImage as GetImage,
+                tileX * tileSize,
+                tileY * tileSize,
+                tileWidth,
+                tileHeight,
+                Math.ceil(tileWidth * currentLevelScale),
+                Math.ceil(tileHeight * currentLevelScale),
+                controller.signal,
+                layer.id,
+              ).then((bitmap) => {
+                drawBitmap(bitmap, tileX * tileSize, tileY * tileSize, tileWidth, tileHeight);
+                resolve(undefined);
+                if (!tiling.downloadedRasterDrawAtOnce) {
+                  layerRef.current?.batchDraw();
+                }
+              });
+            });
+            promises.push(promise);
+          }
+        }
+        if (tiling.downloadedRasterDrawAtOnce) {
+          await Promise.all(promises);
+          layerRef.current?.batchDraw();
+        }
       }
     }
     // Debounce
-    timer.current = setTimeout(loadAndDrawTiles, 150);
+    timer.current = setTimeout(loadAndDrawTiles, 500);
 
     return () => {
       clearTimeout(timer.current);
