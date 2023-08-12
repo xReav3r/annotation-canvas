@@ -270,18 +270,18 @@ function AnnotationCanvasDemo() {
               onZoomChange={setZoom}
               // gridEnabled={false}
               blobColors={[{ r: 255, g: 0, b: 0 }]}
-              // boundingBoxes={[
-              //   {
-              //     x: 100,
-              //     y: 100,
-              //     stroke: "red",
-              //     strokeWidth: 5,
-              //     opacity: 1,
-              //     width: 300,
-              //     height: 200,
-              //     onPointerClick: (_) => console.log(10),
-              //   },
-              // ]}
+              boundingBoxes={[
+                {
+                  x: 100,
+                  y: 100,
+                  stroke: "red",
+                  strokeWidth: 5,
+                  opacity: 1,
+                  width: 300,
+                  height: 200,
+                  onPointerClick: (_) => console.log(10),
+                },
+              ]}
             />
             <div
               style={{

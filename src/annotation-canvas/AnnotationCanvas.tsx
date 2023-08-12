@@ -68,7 +68,7 @@ interface IAnnotationCanvas {
     opacity: number;
     width: number;
     height: number;
-    onPointerClick: (e: KonvaEventObject<PointerEvent>) => void;
+    onPointerClick?: (e: KonvaEventObject<PointerEvent>) => void;
   }[];
 }
 
@@ -938,7 +938,7 @@ function AnnotationCanvas({
         {boundingBoxes.length > 0 && (
           <Layer>
             {boundingBoxes.map((box) => (
-              <Rect {...box} />
+              <Rect {...box} strokeWidth={(box.strokeWidth * 1) / zoom.scale} />
             ))}
           </Layer>
         )}
