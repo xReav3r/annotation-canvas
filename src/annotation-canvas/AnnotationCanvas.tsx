@@ -1,5 +1,4 @@
 import Konva from "konva";
-import { KonvaEventObject, Node, NodeConfig } from "konva/lib/Node";
 import { useEffect, useRef, useState } from "react";
 import { Image, Label, Layer, Rect, Stage, Tag, Text } from "react-konva";
 import {
@@ -33,6 +32,7 @@ import {
   toBlob,
 } from "./utils";
 import PolygonHelperLayer from "./PolygonHelperLayers";
+import { RectConfig } from "konva/lib/shapes/Rect";
 
 interface PixelData {
   width: number;
@@ -60,16 +60,7 @@ interface IAnnotationCanvas {
   gridLine?: { stroke?: string; strokeWidth: number };
   disableZoom?: boolean;
   blobColors?: { r: number; g: number; b: number }[];
-  boundingBoxes?: {
-    x: number;
-    y: number;
-    stroke: string;
-    strokeWidth: number;
-    opacity: number;
-    width: number;
-    height: number;
-    onPointerClick?: (e: KonvaEventObject<PointerEvent>) => void;
-  }[];
+  boundingBoxes?: RectConfig[];
 }
 
 function AnnotationCanvas({
@@ -938,7 +929,12 @@ function AnnotationCanvas({
         {boundingBoxes.length > 0 && (
           <Layer>
             {boundingBoxes.map((box) => (
-              <Rect {...box} strokeWidth={(box.strokeWidth * 1) / zoom.scale} />
+              <Rect
+                {...box}
+                strokeWidth={
+                  box.strokeWidth !== undefined ? (box.strokeWidth * 1) / zoom.scale : undefined
+                }
+              />
             ))}
           </Layer>
         )}
