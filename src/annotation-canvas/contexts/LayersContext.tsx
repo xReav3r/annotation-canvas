@@ -29,6 +29,7 @@ export type CreatedRasterLayerData = {
 
 export interface CreatedVectorLayerData {
   elements: (CreatedVectorLayerLine | CreatedVectorLayerRectangle | CreatedVectorLayerCircle)[];
+  forcedEditElementIndex: number;
   initElements?: (
     | CreatedVectorLayerLine
     | CreatedVectorLayerRectangle

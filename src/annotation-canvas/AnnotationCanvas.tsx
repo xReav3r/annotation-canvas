@@ -859,6 +859,8 @@ function AnnotationCanvas({
                 <CreatedVectorLayer
                   key={layer.id}
                   layer={layer}
+                  stageWidth={stageWidth}
+                  stageHeight={stageHeight}
                   active={selectedLayer === i}
                   zoom={zoom}
                   setDragging={setDragging}
@@ -890,20 +892,6 @@ function AnnotationCanvas({
             }
           />
         </Layer>
-        {polygonHelper.length > 0 && (
-          // TODO - context maybe
-          <PolygonHelperLayer
-            stageWidth={stageWidth}
-            stageHeight={stageHeight}
-            zoom={zoom}
-            polygonHelper={polygonHelper}
-            setPolygonHelper={setPolygonHelper}
-            polygonHelperOffset={polygonHelperOffset}
-            setPolygonHelperOffset={setPolygonHelperOffset}
-            setDragging={setDragging}
-            resetPolygon={resetPolygon}
-          />
-        )}
         {contoursBoundingBoxes.length > 0 && (
           <Layer>
             {contoursBoundingBoxes.map((contour) => {
@@ -937,6 +925,30 @@ function AnnotationCanvas({
               />
             ))}
           </Layer>
+        )}
+        {/* TODO Selected vector layer must be rendered in front, because bounding boxes events will collide
+             { selectedLayer == i &&(
+                <CreatedVectorLayer
+                  key={layer.id}
+                  layer={layer}
+                  active={selectedLayer === i}
+                  zoom={zoom}
+                  setDragging={setDragging}
+                />
+              );} */}
+        {polygonHelper.length > 0 && (
+          // TODO - context maybe
+          <PolygonHelperLayer
+            stageWidth={stageWidth}
+            stageHeight={stageHeight}
+            zoom={zoom}
+            polygonHelper={polygonHelper}
+            setPolygonHelper={setPolygonHelper}
+            polygonHelperOffset={polygonHelperOffset}
+            setPolygonHelperOffset={setPolygonHelperOffset}
+            setDragging={setDragging}
+            resetPolygon={resetPolygon}
+          />
         )}
       </Stage>
     </div>

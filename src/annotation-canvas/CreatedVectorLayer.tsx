@@ -16,11 +16,15 @@ import { KonvaEventObject } from "konva/lib/Node";
 import EditableRectangle from "./components/EditableRectangle";
 
 function CreatedVectorLayer({
+  stageWidth,
+  stageHeight,
   layer,
   active,
   zoom,
   setDragging,
 }: {
+  stageWidth: number;
+  stageHeight: number;
   layer: ICreatedVectorLayer;
   active: boolean;
   zoom: {
@@ -47,10 +51,15 @@ function CreatedVectorLayer({
     setLayerById(newLayer);
   }, []);
 
-  const [editedElementIndex, setEditedElementIndex] = useState(-1);
+  const [editedElementIndexState, setEditedElementIndexState] = useState(-1);
   useEffect(() => {
-    setEditedElementIndex(-1);
+    setEditedElementIndexState(-1);
   }, [selectedTool, selectedLayer]);
+
+  const editedElementIndex =
+    layer.data.forcedEditElementIndex !== undefined
+      ? layer.data.forcedEditElementIndex
+      : editedElementIndexState;
 
   const selectedElement = layer.data.elements[editedElementIndex];
   const selectedPolygon =
@@ -140,17 +149,23 @@ function CreatedVectorLayer({
           case ElementType.Rectangle:
             return (
               <EditableRectangle
+                stageWidth={stageWidth}
+                stageHeight={stageHeight}
+                zoom={zoom}
                 key={i}
                 shapeProps={{
                   ...element,
                   draggable: selectedTool === Tool.Drag || editedElementIndex === i,
+                  // dragBoundFunc: (a, b) => {
+                  //   console.log(a.x, a.y, a.width, a.height, b);
+                  // },
                   onDragEnd: (e) => {
                     setPositionAfterDrag(e, i);
                   },
                   onPointerClick: (e) => {
                     e.cancelBubble = true;
                     if (selectedTool === Tool.Edit) {
-                      setEditedElementIndex(i);
+                      setEditedElementIndexState(i);
                       return;
                     }
 
@@ -199,7 +214,7 @@ function CreatedVectorLayer({
                   onPointerClick={(e) => {
                     e.cancelBubble = true;
                     if (selectedTool === Tool.Edit) {
-                      setEditedElementIndex(i);
+                      setEditedElementIndexState(i);
                       return;
                     }
 
@@ -275,7 +290,7 @@ function CreatedVectorLayer({
                   layer: newLayer,
                 });
               } else {
-                setEditedElementIndex(-1);
+                setEditedElementIndexState(-1);
                 setDragging(false);
               }
             }}
@@ -346,7 +361,7 @@ function CreatedVectorLayer({
                   // Delete whole polygon
                   if (selectedPolygon.points.length <= 1) {
                     newElements.splice(editedElementIndex, 2);
-                    setEditedElementIndex(-1);
+                    setEditedElementIndexState(-1);
                   }
                   const newLayer = {
                     ...layer,
