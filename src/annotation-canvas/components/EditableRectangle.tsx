@@ -1,33 +1,42 @@
 import Konva from "konva";
 import { useEffect, useRef } from "react";
 import { Rect, Transformer } from "react-konva";
-import { useLayers } from "../contexts/LayersContext";
-import { boundPointer, stageBound } from "../utils";
+import { CreatedVectorLayerRectangle, useLayers } from "../contexts/LayersContext";
+import { Tool, useTool } from "../contexts/ToolContext";
 
 function EditableRectangle({
-  stageWidth,
-  stageHeight,
   zoom,
   shapeProps,
   isSelected,
-  onChange,
+  setEditedElementIndexState,
+  removeElement,
   onChangeEnd,
 }: {
-  stageWidth: number;
-  stageHeight: number;
   zoom: {
     scale: number;
     position: { x: number; y: number };
   };
-  shapeProps: Konva.Rect;
+  shapeProps: CreatedVectorLayerRectangle;
   isSelected: boolean;
-  onChange: (newRect: Konva.Rect) => void;
-  onChangeEnd: (newRect: Konva.Rect) => void;
+  setEditedElementIndexState: () => void;
+  removeElement: () => void;
+  onChangeEnd: ({
+    x,
+    y,
+    width,
+    height,
+  }: {
+    x: number;
+    y: number;
+    width?: number;
+    height?: number;
+  }) => void;
 }) {
   const shapeRef = useRef<Konva.Rect>();
   const transformerRef = useRef<Konva.Transformer>();
 
   const { rasterWidth, rasterHeight } = useLayers();
+  const { selectedTool } = useTool();
 
   useEffect(() => {
     if (isSelected && shapeRef.current && transformerRef.current) {
@@ -41,6 +50,51 @@ function EditableRectangle({
       <Rect
         ref={shapeRef}
         {...shapeProps}
+        draggable={selectedTool === Tool.Drag || isSelected}
+        onDragEnd={(e) => {
+          onChangeEnd({ x: e.target.x(), y: e.target.y() });
+        }}
+        onPointerClick={(e) => {
+          e.cancelBubble = true;
+          if (selectedTool === Tool.Edit) {
+            setEditedElementIndexState();
+            return;
+          }
+
+          if (selectedTool === Tool.Remove) {
+            removeElement();
+          }
+        }}
+        dragBoundFunc={(node) => {
+          if (!shapeRef.current) return;
+          const { x, y, width, height } = shapeRef.current.attrs;
+
+          const normalizedWidth = width * zoom.scale;
+          const normalizedHeight = height * zoom.scale;
+
+          const normalizedRasterWidth = rasterWidth * zoom.scale;
+          const normalizedRasterHeight = rasterHeight * zoom.scale;
+
+          const offsetX = zoom.position.x;
+          const offsetY = zoom.position.y;
+
+          const newPos = { x: node.x, y: node.y };
+
+          if (node.x < offsetX) {
+            newPos.x = offsetX;
+          }
+          if (node.y < offsetY) {
+            newPos.y = offsetY;
+          }
+          if (node.x + normalizedWidth - offsetX > normalizedRasterWidth) {
+            newPos.x = offsetX + normalizedRasterWidth - normalizedWidth;
+          }
+          if (node.y + normalizedHeight - offsetY > normalizedRasterHeight) {
+            newPos.y = offsetY + normalizedRasterHeight - normalizedHeight;
+          }
+
+          return newPos;
+        }}
         onTransform={(e) => {
           const node = shapeRef.current;
           if (!node) return;
@@ -60,23 +114,33 @@ function EditableRectangle({
           const node = shapeRef.current;
           if (!node) return;
 
-          const newWidth = node.width() * node.scaleX();
-          const newHeight = node.height() * node.scaleY();
+          let newWidth = node.width() * node.scaleX();
+          let newHeight = node.height() * node.scaleY();
+
+          // Konva sets rotation when flipping horizontally
+          // https://konvajs.org/docs/select_and_transform/Transform_Events.html
+          if (node.rotation() !== 0) {
+            newWidth = -newWidth;
+            newHeight = -newHeight;
+          }
+
+          // Normalize negative width and height
+          const normalizedProps = {
+            x: newWidth < 0 ? node.x() + newWidth : node.x(),
+            y: newHeight < 0 ? node.y() + newHeight : node.y(),
+            width: Math.abs(newWidth),
+            height: Math.abs(newHeight),
+          };
 
           // transformer is changing scale of the node and NOT its width or height
           node.setAttrs({
-            width: newWidth,
-            height: newHeight,
+            ...normalizedProps,
             scaleX: 1,
             scaleY: 1,
+            rotation: 0,
           });
-          onChangeEnd({
-            ...shapeProps,
-            x: node.x(),
-            y: node.y(),
-            width: newWidth,
-            height: newHeight,
-          });
+
+          onChangeEnd(normalizedProps);
         }}
       />
       {isSelected && (
@@ -85,58 +149,33 @@ function EditableRectangle({
           rotateEnabled={false}
           ignoreStroke={true}
           padding={shapeProps.strokeWidth}
-          // TODO + dragging bounding
-          // boundBoxFunc={(oldBox, newBox) => {
-          //   // limit resize to be too small
-          //   if (newBox.width < shapeProps.strokeWidth || newBox.height < shapeProps.strokeWidth) {
-          //     return oldBox;
-          //   }
+          boundBoxFunc={(a, b) => {
+            const normalizedRasterWidth = rasterWidth * zoom.scale;
+            const normalizedRasterHeight = rasterHeight * zoom.scale;
 
-          //   console.log(
-          //     "BOX",
-          //     newBox.x / zoom.scale,
-          //     newBox.y / zoom.scale,
-          //     newBox.width / zoom.scale,
-          //     newBox.height / zoom.scale,
-          //   );
+            const offsetX = zoom.position.x;
+            const offsetY = zoom.position.y;
 
-          //   // Limit to raster
-          //   const rasterToViewportRatioX = stageWidth / rasterWidth;
+            const maxX = b.x + b.width;
+            const maxY = b.y + b.height;
 
-          //   const rasterToViewportRatioY = stageHeight / rasterHeight;
-          //   console.log(stageWidth / zoom.scale, stageHeight / zoom.scale);
+            if (b.x < offsetX) {
+              b.width = b.width + b.x - offsetX;
+              b.x = offsetX;
+            }
+            if (b.y < offsetY) {
+              b.height = a.height + b.y - offsetY;
+              b.y = offsetY;
+            }
+            if (maxX > normalizedRasterWidth + offsetX) {
+              b.width = normalizedRasterWidth + offsetX - b.x;
+            }
+            if (maxY > normalizedRasterHeight + offsetY) {
+              b.height = normalizedRasterHeight + offsetY - b.y;
+            }
 
-          //   // console.log(rasterToViewportRatioX, rasterToViewportRatioY);
-
-          //   const rasterToStageOffsetX = stageWidth / rasterToViewportRatioX - rasterWidth;
-          //   const rasterToStageOffsetY = stageHeight / rasterToViewportRatioY - rasterHeight;
-
-          //   console.log(rasterWidth, rasterHeight);
-          //   console.log(rasterToStageOffsetX, rasterToStageOffsetY);
-
-          //   const offsetX1 = newBox.x + rasterToStageOffsetX;
-          //   const offsetY1 = newBox.y + rasterToStageOffsetY;
-          //   const offsetX2 = newBox.x + newBox.width + rasterToStageOffsetX;
-          //   const offsetY2 = newBox.y + newBox.height + rasterToStageOffsetY;
-
-          //   const { pointerPosition: pos1 } = boundPointer(
-          //     { x: offsetX1 * zoom.scale, y: offsetY1 * zoom.scale },
-          //     rasterWidth,
-          //     rasterHeight,
-          //   );
-          //   const { pointerPosition: pos2 } = boundPointer(
-          //     {
-          //       x: offsetX2 * zoom.scale,
-          //       y: offsetY2 * zoom.scale,
-          //     },
-          //     rasterWidth,
-          //     rasterHeight,
-          //   );
-
-          //   // console.log(pos1, pos2);
-
-          //   return newBox;
-          // }}
+            return b;
+          }}
         />
       )}
     </>

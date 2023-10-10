@@ -859,8 +859,6 @@ function AnnotationCanvas({
                 <CreatedVectorLayer
                   key={layer.id}
                   layer={layer}
-                  stageWidth={stageWidth}
-                  stageHeight={stageHeight}
                   active={selectedLayer === i}
                   zoom={zoom}
                   setDragging={setDragging}
