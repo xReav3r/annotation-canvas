@@ -108,6 +108,8 @@ function EditableRectangle({
             height: newHeight,
             scaleX: 1,
             scaleY: 1,
+            skewX: 0,
+            skewY: 0,
           });
         }}
         onTransformEnd={(e) => {
@@ -138,6 +140,8 @@ function EditableRectangle({
             scaleX: 1,
             scaleY: 1,
             rotation: 0,
+            skewX: 0,
+            skewY: 0,
           });
 
           onChangeEnd(normalizedProps);
@@ -149,32 +153,34 @@ function EditableRectangle({
           rotateEnabled={false}
           ignoreStroke={true}
           padding={shapeProps.strokeWidth}
-          boundBoxFunc={(a, b) => {
+          boundBoxFunc={(oldBox, newBox) => {
             const normalizedRasterWidth = rasterWidth * zoom.scale;
             const normalizedRasterHeight = rasterHeight * zoom.scale;
 
             const offsetX = zoom.position.x;
             const offsetY = zoom.position.y;
 
-            const maxX = b.x + b.width;
-            const maxY = b.y + b.height;
+            const maxX = newBox.x + newBox.width;
+            const maxY = newBox.y + newBox.height;
 
-            if (b.x < offsetX) {
-              b.width = b.width + b.x - offsetX;
-              b.x = offsetX;
+            if (newBox.x < offsetX) {
+              newBox.width = newBox.width + newBox.x - offsetX;
+              newBox.x = offsetX;
             }
-            if (b.y < offsetY) {
-              b.height = a.height + b.y - offsetY;
-              b.y = offsetY;
+            if (newBox.y < offsetY) {
+              newBox.height = newBox.height + newBox.y - offsetY;
+              newBox.y = offsetY;
             }
             if (maxX > normalizedRasterWidth + offsetX) {
-              b.width = normalizedRasterWidth + offsetX - b.x;
+              newBox.width = normalizedRasterWidth + offsetX - newBox.x;
             }
             if (maxY > normalizedRasterHeight + offsetY) {
-              b.height = normalizedRasterHeight + offsetY - b.y;
+              newBox.height = normalizedRasterHeight + offsetY - newBox.y;
             }
 
-            return b;
+            if (Math.abs(newBox.width) < 0.0001) newBox.width = 0.0001;
+            if (Math.abs(newBox.height) < 0.0001) newBox.height = 0.0001;
+            return newBox;
           }}
         />
       )}
