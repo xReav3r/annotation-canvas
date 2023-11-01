@@ -61,6 +61,8 @@ interface IAnnotationCanvas {
   disableZoom?: boolean;
   blobColors?: { r: number; g: number; b: number }[];
   boundingBoxes?: RectConfig[];
+  zoom?: Zoom;
+  setZoom?: React.Dispatch<React.SetStateAction<Zoom>>;
 }
 
 function AnnotationCanvas({
@@ -72,6 +74,8 @@ function AnnotationCanvas({
   disableZoom = false,
   blobColors = [],
   boundingBoxes = [],
+  zoom: propsZoom,
+  setZoom: setPropsZoom,
 }: IAnnotationCanvas) {
   const { selectedTool, drawColor, toolSize, brushShape } = useTool();
 
@@ -85,10 +89,31 @@ function AnnotationCanvas({
     historyPush,
   } = useLayers();
 
-  const [zoom, setZoom] = useState({
+  if (propsZoom === undefined && setPropsZoom !== undefined) {
+    throw "annotation-canvas - AnnotationCanvas: setZoom provided, but not zoom.";
+  }
+
+  const [internalZoom, setInternalZoom] = useState({
     scale: 1,
     position: { x: 0, y: 0 },
   });
+
+  let zoom = internalZoom;
+
+  if (propsZoom !== undefined) {
+    zoom = propsZoom;
+  }
+
+  let setZoom = setInternalZoom;
+  if (propsZoom !== undefined && setPropsZoom === undefined) {
+    console.warn(
+      "annotation-canvas - AnnotationCanvas: zoom provided, but not setZoom. Component will not zoom.",
+    );
+    setZoom = () => {};
+  }
+  if (setPropsZoom !== undefined) {
+    setZoom = setPropsZoom;
+  }
 
   const containerRef = useRef<HTMLDivElement>(null); // default element for TypeScript
   const stageRef = useRef<Konva.Stage>(null);

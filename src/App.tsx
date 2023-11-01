@@ -217,7 +217,10 @@ function App() {
 }
 
 function AnnotationCanvasDemo() {
-  const [zoom, setZoom] = useState<Zoom | null>(null);
+  const [zoom, setZoom] = useState<Zoom>({
+    scale: 1,
+    position: { x: 0, y: 0 },
+  });
   const [pointerPosition, setPointerPosition] = useState({ x: 0, y: 0 });
 
   const { setLayerById } = useLayers();
@@ -267,7 +270,8 @@ function AnnotationCanvasDemo() {
           <>
             <AnnotationCanvas
               onPointerMove={setPointerPosition}
-              onZoomChange={setZoom}
+              zoom={zoom}
+              setZoom={setZoom}
               // gridEnabled={false}
               blobColors={[{ r: 255, g: 0, b: 0 }]}
               boundingBoxes={[

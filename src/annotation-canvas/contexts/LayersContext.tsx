@@ -174,8 +174,8 @@ const LayersProvider = ({
   children,
   rasterWidth,
   rasterHeight,
-  layers,
-  setLayers,
+  layers: propsLayers,
+  setLayers: setPropsLayers,
   defaultLayers,
   tiling,
 }: {
@@ -192,7 +192,7 @@ const LayersProvider = ({
   };
 }) => {
   // Controlled and uncontrolled layers support
-  if (layers !== undefined && setLayers !== undefined && defaultLayers !== undefined) {
+  if (propsLayers !== undefined && setPropsLayers !== undefined && defaultLayers !== undefined) {
     console.warn(
       "annotation-canvas - LayersProvider: layers, setLayers and defaultLayers provided. defaultLayers is ignored.",
     );
@@ -202,28 +202,28 @@ const LayersProvider = ({
     defaultLayers !== undefined ? defaultLayers : [],
   );
 
-  let layersState = internalLayers;
-  if (layers === undefined && setLayers !== undefined) {
+  let layers = internalLayers;
+  if (propsLayers === undefined && setPropsLayers !== undefined) {
     throw "annotation-canvas - LayersProvider: setLayers provided, but not layers. Use defaultLayers if component is intended to be non controlled.";
   }
-  if (layers !== undefined) {
-    layersState = layers;
+  if (propsLayers !== undefined) {
+    layers = propsLayers;
   }
 
-  let setLayersState = setInternalLayers;
-  if (layers !== undefined && setLayers === undefined) {
+  let setLayers = setInternalLayers;
+  if (propsLayers !== undefined && setPropsLayers === undefined) {
     console.warn(
       "annotation-canvas - LayersProvider: layers provided, but not setLayers. Component will not draw.",
     );
-    setLayersState = () => {};
+    setLayers = () => {};
   }
-  if (setLayers !== undefined) {
-    setLayersState = setLayers;
+  if (setPropsLayers !== undefined) {
+    setLayers = setPropsLayers;
   }
 
   // Backup initial vector elements for undo
   useEffect(() => {
-    layersState.forEach((layer, i) => {
+    layers.forEach((layer, i) => {
       if (layer.type === LayerType.createdVector) {
         layer.data.initElements = _.cloneDeep(layer.data.elements);
         setLayerByIndex(i, layer);
@@ -377,7 +377,7 @@ const LayersProvider = ({
         setLayerById(recordCopy.layer);
         break;
       case HistoryAction.rasterize:
-        const index = layersState?.findIndex((iLayer) => iLayer.id === recordCopy.layer.id);
+        const index = layers?.findIndex((iLayer) => iLayer.id === recordCopy.layer.id);
         _rasterizeLayer(index);
     }
   }
@@ -406,10 +406,10 @@ const LayersProvider = ({
 
   const [selectedLayer, setSelectedLayer] = useState(0);
 
-  const selectedLayerType = layersState[selectedLayer]?.type;
+  const selectedLayerType = layers[selectedLayer]?.type;
 
   function _createLayer(layer: Layer) {
-    setLayersState((prev) => {
+    setLayers((prev) => {
       const newLayers = [...prev];
       newLayers.push(layer);
       return newLayers;
@@ -422,7 +422,7 @@ const LayersProvider = ({
   }
 
   function setLayerByIndex(index: number, value: ((prev: Layer) => Layer) | Layer) {
-    setLayersState((prev) => {
+    setLayers((prev) => {
       const newLayers = [...prev];
       typeof value === "function"
         ? (newLayers[index] = value(newLayers[index]))
@@ -433,9 +433,9 @@ const LayersProvider = ({
   }
 
   function setLayerById(layer: Layer) {
-    const foundLayerIndex = layersState.findIndex((iLayer) => iLayer.id === layer.id);
+    const foundLayerIndex = layers.findIndex((iLayer) => iLayer.id === layer.id);
     if (foundLayerIndex !== -1) {
-      setLayersState((prev) => {
+      setLayers((prev) => {
         const newLayers = [...prev];
         newLayers[foundLayerIndex] = layer;
         return newLayers;
@@ -443,17 +443,17 @@ const LayersProvider = ({
     }
   }
   function _removeLayer(index: number) {
-    if (layersState.length - 2 < selectedLayer) {
+    if (layers.length - 2 < selectedLayer) {
       setSelectedLayer((prev) => prev - 1);
     }
-    setLayersState((prev) => {
+    setLayers((prev) => {
       const newLayers = [...prev];
       newLayers.splice(index, 1);
       return newLayers;
     });
   } // TODO - store index
   async function removeLayer(index: number) {
-    const layer = layersState[index];
+    const layer = layers[index];
     if (layer.type === LayerType.createdRaster && layer.data?.canvas !== undefined) {
       layer.data.actualImage = await toBlob(layer.data.canvas);
     }
@@ -464,9 +464,9 @@ const LayersProvider = ({
   }
 
   function _removeLayerById(id: any) {
-    const foundLayerIndex = layersState.findIndex((layer) => layer.id === id);
+    const foundLayerIndex = layers.findIndex((layer) => layer.id === id);
     if (foundLayerIndex !== -1) {
-      setLayersState((prev) => {
+      setLayers((prev) => {
         const newLayers = [...prev];
         newLayers.splice(foundLayerIndex, 1);
         return newLayers;
@@ -474,9 +474,9 @@ const LayersProvider = ({
     }
   }
   async function removeLayerById(id: any) {
-    const foundLayerIndex = layersState.findIndex((layer) => layer.id === id);
+    const foundLayerIndex = layers.findIndex((layer) => layer.id === id);
     if (foundLayerIndex !== -1) {
-      const layer = layersState[foundLayerIndex];
+      const layer = layers[foundLayerIndex];
       if (layer.type === LayerType.createdRaster && layer.data?.canvas !== undefined) {
         layer.data.actualImage = await toBlob(layer.data.canvas);
       }
@@ -487,7 +487,7 @@ const LayersProvider = ({
   }
 
   async function _rasterizeLayer(index: number) {
-    const vectorLayer = layersState[index];
+    const vectorLayer = layers[index];
     if (vectorLayer.type === LayerType.createdVector && vectorLayer.data.layer) {
       const width = vectorLayer.data.layer.width();
       const height = vectorLayer.data.layer.height();
@@ -509,7 +509,7 @@ const LayersProvider = ({
       });
 
       const newLayer = {
-        ...layersState[index],
+        ...layers[index],
         type: LayerType.createdRaster,
         data: {
           initImage: blob,
@@ -520,7 +520,7 @@ const LayersProvider = ({
   }
 
   function rasterizeLayer(index: number) {
-    const vectorLayer = layersState[index];
+    const vectorLayer = layers[index];
     historyPush({ action: HistoryAction.rasterize, layer: vectorLayer });
     _rasterizeLayer(index);
   }
@@ -528,10 +528,10 @@ const LayersProvider = ({
   return (
     <LayersContext.Provider
       value={{
-        layers: layersState,
+        layers: layers,
         rasterWidth,
         rasterHeight,
-        setLayers: setLayersState,
+        setLayers: setLayers,
 
         selectedLayer,
         setSelectedLayer,
