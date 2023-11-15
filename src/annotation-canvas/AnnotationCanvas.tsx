@@ -322,6 +322,20 @@ function AnnotationCanvas({
         dragBoundFunc={(pos) => {
           return stageBound(pos, stageWidth, stageHeight, rasterWidth, rasterHeight, zoom.scale);
         }}
+        onPointerDblClick={(e) => {
+          if (disableZoom || !stageRef.current) return;
+          const newScale = Math.min(stageWidth / rasterWidth, stageHeight / rasterHeight);
+          stageRef.current.scale({ x: newScale, y: newScale });
+          setZoom((prev) => {
+            return { ...prev, scale: newScale };
+          });
+
+          // Centering
+          stageRef.current.position({
+            x: (stageWidth - rasterWidth * newScale) / 2,
+            y: (stageHeight - rasterHeight * newScale) / 2,
+          });
+        }}
         // DOWN
         onPointerDown={(e) => {
           if (selectedTool === Tool.Move) return;
@@ -783,6 +797,7 @@ function AnnotationCanvas({
         }}
         // MULTI TOUCH - PINCH ZOOM
         onTouchMove={(e) => {
+          if (disableZoom) return;
           e.evt.preventDefault();
           const touch1 = e.evt.touches[0];
           const touch2 = e.evt.touches[1];
