@@ -1,6 +1,7 @@
 import cv from "@techstark/opencv-js";
 import Konva from "konva";
 import { Color } from "./contexts/ToolContext";
+import { Zoom } from "./AnnotationCanvas";
 
 export function createRasterCanvas(width: number, height: number) {
   const canvas = document.createElement("canvas");
@@ -453,4 +454,25 @@ export function toBlob(canvas: HTMLCanvasElement): Promise<Blob> {
       if (blob) resolve(blob);
     });
   });
+}
+
+export function calculateViewport(
+  zoom: Zoom,
+  stageWidth: number,
+  stageHeight: number,
+  rasterWidth: number,
+  rasterHeight: number,
+) {
+  let x1 = Math.max(0, -Math.trunc(zoom.position.x / zoom.scale));
+  let y1 = Math.max(0, -Math.trunc(zoom.position.y / zoom.scale));
+
+  let x2 = Math.max(0, Math.ceil((stageWidth - zoom.position.x) / zoom.scale));
+  let y2 = Math.max(0, Math.ceil((stageHeight - zoom.position.y) / zoom.scale));
+
+  // Cut to layers dimensions
+  x1 = Math.min(rasterWidth, x1);
+  y1 = Math.min(rasterHeight, y1);
+  x2 = Math.min(rasterWidth, x2);
+  y2 = Math.min(rasterHeight, y2);
+  return { x1, y1, x2, y2 };
 }
