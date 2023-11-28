@@ -254,12 +254,12 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
       x: 0,
       y: 0,
     });
-    const [dragging, setDragging] = useState(false);
+    const dragging = useRef(false);
 
     function resetPolygon() {
       setPolygonHelper([]);
       setPolygonHelperOffset({ x: 0, y: 0 });
-      setDragging(false);
+      dragging.current = false;
     }
 
     useEffect(() => {
@@ -325,12 +325,19 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
               false,
             );
           }}
+          onDragStart={() => {
+            dragging.current = true;
+          }}
+          onDragEnd={() => {
+            dragging.current = false;
+          }}
           dragBoundFunc={(pos) => {
             return stageBound(pos, stageWidth, stageHeight, rasterWidth, rasterHeight, zoom.scale);
           }}
           onPointerDblClick={(e) => {
             // Zoom reset
-            if (disableZoom || !stageRef.current) return;
+            if (disableZoom || !stageRef.current || dragging.current || selectedTool !== Tool.Move)
+              return;
             const newScale = Math.min(stageWidth / rasterWidth, stageHeight / rasterHeight);
             // Centering
             const newPosition = {
@@ -791,7 +798,7 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
             }
             // CLICK - VECTOR
             if (selectedTool === Tool.Polygon) {
-              if (dragging) return;
+              if (dragging.current) return;
 
               setPolygonHelper((prev) => {
                 return [
@@ -906,7 +913,9 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
                     layer={layer}
                     active={selectedLayer === i}
                     zoom={zoom}
-                    setDragging={setDragging}
+                    setDragging={(value) => {
+                      dragging.current = value;
+                    }}
                   />
                 );
               case LayerType.downloadedRaster:
@@ -959,8 +968,9 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
           )}
           {boundingBoxes.length > 0 && (
             <Layer>
-              {boundingBoxes.map((box) => (
+              {boundingBoxes.map((box, i) => (
                 <Rect
+                  key={i}
                   {...box}
                   strokeWidth={
                     box.strokeWidth !== undefined ? (box.strokeWidth * 1) / zoom.scale : undefined
@@ -976,7 +986,9 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
                   layer={layer}
                   active={selectedLayer === i}
                   zoom={zoom}
-                  setDragging={setDragging}
+                  setDragging={(value) => {
+                      dragging.current = value;
+                  }}
                 />
               );} */}
           {polygonHelper.length > 0 && (
@@ -989,7 +1001,9 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
               setPolygonHelper={setPolygonHelper}
               polygonHelperOffset={polygonHelperOffset}
               setPolygonHelperOffset={setPolygonHelperOffset}
-              setDragging={setDragging}
+              setDragging={(value) => {
+                dragging.current = value;
+              }}
               resetPolygon={resetPolygon}
             />
           )}

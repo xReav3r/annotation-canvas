@@ -27,7 +27,7 @@ function CreatedVectorLayer({
     scale: number;
     position: { x: number; y: number };
   };
-  setDragging: Dispatch<SetStateAction<boolean>>;
+  setDragging: (value: boolean) => void;
 }) {
   const layerRef = useRef<Konva.Layer>(null);
   const polygonGroupRef = useRef<Konva.Group>(null);

@@ -30,7 +30,7 @@ function PolygonHelperLayer({
   setPolygonHelper: Dispatch<SetStateAction<{ x: number; y: number }[]>>;
   polygonHelperOffset: { x: number; y: number };
   setPolygonHelperOffset: Dispatch<SetStateAction<{ x: number; y: number }>>;
-  setDragging: Dispatch<SetStateAction<boolean>>;
+  setDragging: (value: boolean) => void;
   resetPolygon: () => void;
 }) {
   const { drawColor, toolSize } = useTool();
