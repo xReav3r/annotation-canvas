@@ -152,7 +152,6 @@ function EditableRectangle({
           ref={transformerRef}
           rotateEnabled={false}
           ignoreStroke={true}
-          padding={shapeProps.strokeWidth}
           boundBoxFunc={(oldBox, newBox) => {
             const normalizedRasterWidth = rasterWidth * zoom.scale;
             const normalizedRasterHeight = rasterHeight * zoom.scale;
