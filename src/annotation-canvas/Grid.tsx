@@ -19,7 +19,7 @@ function Grid({
   const horizontalLines = useMemo(() => {
     const lines: JSX.Element[] = [];
     for (let i = viewport.y1; i <= viewport.y2; i++) {
-      lines.push(<Line {...line} points={[viewport.x1, i, viewport.x2, i]} />);
+      lines.push(<Line key={i} {...line} points={[viewport.x1, i, viewport.x2, i]} />);
     }
     return lines;
   }, [viewport, width, height]);
@@ -27,7 +27,7 @@ function Grid({
   const verticalLines = useMemo(() => {
     const lines: JSX.Element[] = [];
     for (let i = viewport.x1; i <= viewport.x2; i++) {
-      lines.push(<Line {...line} points={[i, viewport.y1, i, viewport.y2]} />);
+      lines.push(<Line key={i} {...line} points={[i, viewport.y1, i, viewport.y2]} />);
     }
     return lines;
   }, [viewport, width, height]);

@@ -108,8 +108,10 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
 
     const prevPointer = useRef({ x: 0, y: 0 });
 
-    const [stageWidth, setStageWidth] = useState(0);
-    const [stageHeight, setStageHeight] = useState(0);
+    const stageWidth =
+      containerRef.current?.clientWidth === undefined ? 0 : containerRef.current.clientWidth;
+    const stageHeight =
+      containerRef.current?.clientHeight === undefined ? 0 : containerRef.current.clientHeight;
 
     useImperativeHandle(
       ref,
@@ -138,7 +140,7 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
 
     const changeZoom = useCallback(
       (newZoom: Zoom, externalInvoke: boolean) => {
-        if (!stageRef.current || stageWidth <= 0 || stageHeight <= 0) return;
+        if (!stageRef.current) return;
         stageRef.current.position(newZoom.position);
         stageRef.current.scale({ x: newZoom.scale, y: newZoom.scale });
 
@@ -149,11 +151,12 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
           rasterWidth,
           rasterHeight,
         );
+
         if (onZoomChange) onZoomChange(newZoom, newViewport, externalInvoke);
         setZoom(newZoom);
         setViewport(newViewport);
       },
-      [stageWidth, stageHeight, rasterWidth, rasterHeight],
+      [rasterWidth, rasterHeight, stageWidth, stageHeight],
     );
 
     // Calculate viewport when resizing
@@ -168,8 +171,9 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
         rasterHeight,
       );
 
+      if (onZoomChange) onZoomChange(zoom, newViewport, false);
       setViewport(newViewport);
-    }, [stageWidth, stageHeight, rasterWidth, rasterHeight]);
+    }, [rasterWidth, rasterHeight]);
 
     const [drawing, setDrawing] = useState(false);
 
@@ -195,18 +199,14 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
     useEffect(() => {
       Konva.hitOnDragEnabled = true; // Initialization for multi touch
       if (containerRef.current === null) throw "containerRef - null";
+
       const resizeObserver = new ResizeObserver(() => {
-        if (containerRef.current === null) return;
-        const newStageWidth = containerRef.current.clientWidth;
-        const newStageHeight = containerRef.current.clientHeight;
-        setStageWidth(newStageWidth);
-        setStageHeight(newStageHeight);
-        if (stageRef.current === null) throw "stageRef - null";
-        const newScale = Math.min(newStageWidth / rasterWidth, newStageHeight / rasterHeight);
+        if (stageWidth === 0 || stageHeight === 0) return;
+        const newScale = Math.min(stageWidth / rasterWidth, stageHeight / rasterHeight);
         // Centering
         const newPosition = {
-          x: (newStageWidth - rasterWidth * newScale) / 2,
-          y: (newStageHeight - rasterHeight * newScale) / 2,
+          x: (stageWidth - rasterWidth * newScale) / 2,
+          y: (stageHeight - rasterHeight * newScale) / 2,
         };
         changeZoom({ position: newPosition, scale: newScale }, false);
       });
@@ -216,7 +216,8 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
       return () => {
         resizeObserver.disconnect();
       };
-    }, []);
+      // containerRef current inits stageWidth and stageHeight
+    }, [containerRef.current]);
 
     function applyZoom(direction: "in" | "out", scaleBy: number) {
       const stage = stageRef.current;
