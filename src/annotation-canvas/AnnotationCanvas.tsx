@@ -136,22 +136,25 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
       y2: 0,
     });
 
-    const changeZoom = useCallback((newZoom: Zoom, externalInvoke: boolean) => {
-      if (!stageRef.current) return;
-      stageRef.current.position(newZoom.position);
-      stageRef.current.scale({ x: newZoom.scale, y: newZoom.scale });
+    const changeZoom = useCallback(
+      (newZoom: Zoom, externalInvoke: boolean) => {
+        if (!stageRef.current) return;
+        stageRef.current.position(newZoom.position);
+        stageRef.current.scale({ x: newZoom.scale, y: newZoom.scale });
 
-      const newViewport = calculateViewport(
-        zoom,
-        stageWidth,
-        stageHeight,
-        rasterWidth,
-        rasterHeight,
-      );
-      if (onZoomChange) onZoomChange(newZoom, newViewport, externalInvoke);
-      setZoom(newZoom);
-      setViewport(newViewport);
-    }, []);
+        const newViewport = calculateViewport(
+          newZoom,
+          stageWidth,
+          stageHeight,
+          rasterWidth,
+          rasterHeight,
+        );
+        if (onZoomChange) onZoomChange(newZoom, newViewport, externalInvoke);
+        setZoom(newZoom);
+        setViewport(newViewport);
+      },
+      [stageWidth, stageHeight, rasterWidth, rasterHeight],
+    );
 
     // Calculate viewport when resizing
     // Zoom viewport change logic is in changeZoom function
