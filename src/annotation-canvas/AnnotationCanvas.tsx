@@ -138,7 +138,7 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
 
     const changeZoom = useCallback(
       (newZoom: Zoom, externalInvoke: boolean) => {
-        if (!stageRef.current) return;
+        if (!stageRef.current || stageWidth <= 0 || stageHeight <= 0) return;
         stageRef.current.position(newZoom.position);
         stageRef.current.scale({ x: newZoom.scale, y: newZoom.scale });
 
