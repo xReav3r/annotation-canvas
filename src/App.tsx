@@ -21,6 +21,7 @@ import Toolbar from "./Toolbar";
 import { Typography } from "@mui/material";
 
 import config from "../frontendConfig";
+import { AnnotationCanvasRef } from "./annotation-canvas/AnnotationCanvas";
 
 async function getImage1(
   x: number,
@@ -217,6 +218,7 @@ function App() {
 }
 
 function AnnotationCanvasDemo() {
+  const annotationCanvasRef = useRef<AnnotationCanvasRef>(null);
   const [zoom, setZoom] = useState<Zoom | null>(null);
   const [pointerPosition, setPointerPosition] = useState({ x: 0, y: 0 });
 
@@ -242,6 +244,11 @@ function AnnotationCanvasDemo() {
   }, [svg]);
 
   useEffect(() => {
+    // useImperativeHandle test
+    // setTimeout(() => {
+    //   annotationCanvasRef.current?.changeZoom({ scale: 1, position: { x: 0, y: 0 } });
+    // }, 3000);
+
     const controller = new AbortController();
 
     async function loadExternalVectorLayer() {
@@ -255,6 +262,7 @@ function AnnotationCanvasDemo() {
     loadExternalVectorLayer();
 
     return () => {
+      annotationCanvasRef;
       controller.abort();
     };
   }, []);
@@ -266,6 +274,7 @@ function AnnotationCanvasDemo() {
         {rasterWidth > 0 && rasterHeight > 0 && (
           <>
             <AnnotationCanvas
+              ref={annotationCanvasRef}
               onPointerMove={setPointerPosition}
               onZoomChange={(zoom, viewport) => {
                 setZoom(zoom);

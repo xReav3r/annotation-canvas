@@ -139,11 +139,28 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
     });
 
     const changeZoom = useCallback(
-      (newZoom: Zoom, externalInvoke: boolean) => {
-        if (!stageRef.current) return;
-        stageRef.current.position(newZoom.position);
-        stageRef.current.scale({ x: newZoom.scale, y: newZoom.scale });
+      (zoom: Zoom, externalInvoke: boolean) => {
+        if (!stageRef.current || !containerRef?.current) return;
+        const stageWidth = containerRef.current.clientWidth;
+        const stageHeight = containerRef.current.clientHeight;
 
+        // Limit scale to stage size
+        const newScale = Math.max(
+          zoom.scale,
+          Math.min(stageWidth / rasterWidth, stageHeight / rasterHeight),
+        );
+        const newPos = stageBound(
+          zoom.position,
+          stageWidth,
+          stageHeight,
+          rasterWidth,
+          rasterHeight,
+          newScale,
+        );
+        stageRef.current.position(newPos);
+        stageRef.current.scale({ x: newScale, y: newScale });
+
+        const newZoom = { scale: newScale, position: newPos };
         const newViewport = calculateViewport(
           newZoom,
           stageWidth,
@@ -156,7 +173,7 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
         setZoom(newZoom);
         setViewport(newViewport);
       },
-      [rasterWidth, rasterHeight, stageWidth, stageHeight],
+      [containerRef.current, rasterWidth, rasterHeight],
     );
 
     // Calculate viewport when resizing
@@ -232,23 +249,12 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
         y: (pointer.y - stage.y()) / oldScale,
       };
 
-      let newScale = direction === "in" ? oldScale * scaleBy : oldScale / scaleBy;
+      const newScale = direction === "in" ? oldScale * scaleBy : oldScale / scaleBy;
 
-      // Limit scale to stage size
-      newScale = Math.max(newScale, Math.min(stageWidth / rasterWidth, stageHeight / rasterHeight));
-
-      let newPosition = {
+      const newPosition = {
         x: pointer.x - pointerPosition.x * newScale,
         y: pointer.y - pointerPosition.y * newScale,
       };
-      newPosition = stageBound(
-        newPosition,
-        stageWidth,
-        stageHeight,
-        rasterWidth,
-        rasterHeight,
-        newScale,
-      );
 
       changeZoom({ position: newPosition, scale: newScale }, false);
     }
@@ -862,28 +868,15 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
                 y: (newCenter.y - stage.y()) / stage.scaleX(),
               };
 
-              let newScale = stage.scaleX() * (dist / touchLastDistance.current);
-              // Limit scale to stage size
-              newScale = Math.max(
-                newScale,
-                Math.min(stageWidth / rasterWidth, stageHeight / rasterHeight),
-              );
+              const newScale = stage.scaleX() * (dist / touchLastDistance.current);
 
               const dx = newCenter.x - touchLastCenter.current.x;
               const dy = newCenter.y - touchLastCenter.current.y;
 
-              let newPosition = {
+              const newPosition = {
                 x: newCenter.x - pointTo.x * newScale + dx,
                 y: newCenter.y - pointTo.y * newScale + dy,
               };
-              newPosition = stageBound(
-                newPosition,
-                stageWidth,
-                stageHeight,
-                rasterWidth,
-                rasterHeight,
-                newScale,
-              );
 
               changeZoom({ position: newPosition, scale: newScale }, false);
 
