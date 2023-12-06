@@ -190,7 +190,7 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
 
       if (onZoomChange) onZoomChange(zoom, newViewport, false);
       setViewport(newViewport);
-    }, [rasterWidth, rasterHeight, onZoomChange]);
+    }, [rasterWidth, rasterHeight]);
 
     const [drawing, setDrawing] = useState(false);
 
