@@ -100,6 +100,7 @@ function DownloadedRasterLayer({
         const y = viewport.y1;
         const width = viewport.x2 - viewport.x1;
         const height = viewport.y2 - viewport.y1;
+        if (width <= 0 || height <= 0) return;
 
         const boundedScale = Math.max(Math.min(scale, 1.0), initScale);
         const blob = await layer.data.getImage(
@@ -114,7 +115,6 @@ function DownloadedRasterLayer({
         const bitmap = await createImageBitmap(blob);
         drawBitmap(bitmap, x, y, width, height);
         layerRef.current?.batchDraw();
-        
       } else {
         const boundedScale = Math.max(
           Math.min(scale, 1.0 - tiling.downloadedRasterLevelSize),
