@@ -173,7 +173,7 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
         setZoom(newZoom);
         setViewport(newViewport);
       },
-      [containerRef.current, rasterWidth, rasterHeight],
+      [containerRef.current, rasterWidth, rasterHeight, onZoomChange],
     );
 
     // Calculate viewport when resizing
@@ -190,7 +190,7 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
 
       if (onZoomChange) onZoomChange(zoom, newViewport, false);
       setViewport(newViewport);
-    }, [rasterWidth, rasterHeight]);
+    }, [rasterWidth, rasterHeight, onZoomChange]);
 
     const [drawing, setDrawing] = useState(false);
 
