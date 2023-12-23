@@ -59,16 +59,41 @@ function DownloadedRasterLayer({
         if (coloring) {
           let imgData = ctx.getImageData(bitmapX, bitmapY, bitmapWidth, bitmapHeight);
           let pixels = imgData.data;
+          let threshold = layer.data.threshold;
+          if (threshold === undefined) {
+            threshold = { min: 0, max: 255 };
+          } else if (threshold.min < 0 || threshold.max > 255 || threshold.max < threshold.min)
+            throw "Invalid DownloadedRasterLayer threshold values. Valid range is 0 - 255 and min must be lesser or equal to max.";
+
+          const thresholdRange = threshold.max - threshold.min;
+          const thresholdRatio = Math.trunc(255 / thresholdRange);
+
           if (coloring.length === 256)
+            // Heatmap coloring
             for (let i = 0; i < pixels.length; i += 4) {
-              pixels[i + 3] = pixels[i]; // Alpha
-              pixels[i + 2] = coloring[pixels[i]][2]; // Blue
-              pixels[i + 1] = coloring[pixels[i]][1]; // Green
-              pixels[i] = coloring[pixels[i]][0]; // Red
+              let grayscaleValue = pixels[i];
+              if (grayscaleValue < threshold.min || grayscaleValue > threshold.max) {
+                pixels[i + 3] = 0; // Alpha
+                continue;
+              }
+
+              grayscaleValue -= threshold.min;
+              grayscaleValue *= thresholdRatio;
+
+              pixels[i + 3] = grayscaleValue; // Alpha
+              pixels[i + 2] = coloring[grayscaleValue][2]; // Blue
+              pixels[i + 1] = coloring[grayscaleValue][1]; // Green
+              pixels[i] = coloring[grayscaleValue][0]; // Red
             }
           if (coloring.length === 1)
+            // Solid color coloring
             for (let i = 0; i < pixels.length; i += 4) {
-              pixels[i + 3] = pixels[i]; // Alpha
+              const grayscaleValue = pixels[i];
+              if (grayscaleValue < threshold.min || grayscaleValue > threshold.max) {
+                pixels[i + 3] = 0; // Alpha
+                continue;
+              }
+              pixels[i + 3] = grayscaleValue; // Alpha
               pixels[i + 2] = coloring[0][2]; // Blue
               pixels[i + 1] = coloring[0][1]; // Green
               pixels[i] = coloring[0][0]; // Red

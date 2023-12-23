@@ -142,6 +142,7 @@ function App() {
         getImage: getImage2,
         // coloring: heatmaps.jet,
         coloring: [[255, 255, 0]],
+        // threshold: { min: 0, max: 250 },
       },
     },
     {
