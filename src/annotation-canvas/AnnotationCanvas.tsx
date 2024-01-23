@@ -318,7 +318,6 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
         <Stage
           style={{ overflow: "hidden", cursor }}
           ref={stageRef}
-          draggable={selectedTool === Tool.Move}
           width={stageWidth}
           height={stageHeight}
           onWheel={(e) => {
@@ -964,7 +963,7 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
             </Layer>
           )}
           {boundingBoxes.length > 0 && (
-            <Layer>
+            <Layer listening={!(selectedTool === Tool.Drag || selectedTool === Tool.Edit)}>
               {boundingBoxes.map((box, i) => (
                 <Rect
                   key={i}

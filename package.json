@@ -1,6 +1,6 @@
 {
   "name": "annotation-canvas",
-  "version": "0.43.0",
+  "version": "0.43.1",
   "author": "Martin Schneider <martin.schneider@codetopic.eu>",
   "source": "src/index.tsx",
   "main": "dist/main.js",

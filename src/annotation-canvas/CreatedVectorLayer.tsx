@@ -14,6 +14,7 @@ import { Tool, useTool } from "./contexts/ToolContext";
 import { getBoundedRelativePointer, pointToLineDistance, pointsArrayToObjects } from "./utils";
 import { KonvaEventObject } from "konva/lib/Node";
 import EditableRectangle from "./components/EditableRectangle";
+import _ from "lodash";
 
 function CreatedVectorLayer({
   layer,
@@ -78,34 +79,38 @@ function CreatedVectorLayer({
     setLayerById(newLayer);
   }
 
-  function handleElementChange({
-    x,
-    y,
-    width,
-    height,
-  }: {
-    x: number;
-    y: number;
-    width?: number;
-    height?: number;
-  }) {
+  function handleElementChange(
+    {
+      x,
+      y,
+      width,
+      height,
+    }: {
+      x: number;
+      y: number;
+      width?: number;
+      height?: number;
+    },
+    index: number,
+  ) {
     const newElements = [...layer.data.elements];
 
     if (width === undefined || height === undefined) {
-      newElements[editedElementIndex] = {
-        ...newElements[editedElementIndex],
+      newElements[index] = {
+        ...newElements[index],
         x,
         y,
       };
     } else {
-      newElements[editedElementIndex] = {
-        ...newElements[editedElementIndex],
+      newElements[index] = {
+        ...newElements[index],
         x,
         y,
         width,
         height,
       } as CreatedVectorLayerRectangle;
     }
+
     const newLayer = {
       ...layer,
       data: {
@@ -168,7 +173,7 @@ function CreatedVectorLayer({
                   removeElement(i);
                 }}
                 onChangeEnd={(newRect) => {
-                  handleElementChange(newRect);
+                  handleElementChange(newRect, i);
                 }}
               />
             );
@@ -179,7 +184,7 @@ function CreatedVectorLayer({
                 key={i}
                 draggable={selectedTool === Tool.Drag}
                 onDragEnd={(e) => {
-                  handleElementChange({ x: e.target.x(), y: e.target.y() });
+                  handleElementChange({ x: e.target.x(), y: e.target.y() }, i);
                 }}
                 onPointerClick={(e) => {
                   e.cancelBubble = true;
@@ -196,6 +201,9 @@ function CreatedVectorLayer({
                   {...element}
                   key={i}
                   draggable={selectedTool === Tool.Drag}
+                  onDragEnd={(e) => {
+                    handleElementChange({ x: e.target.x(), y: e.target.y() }, i);
+                  }}
                   onPointerClick={(e) => {
                     e.cancelBubble = true;
                     if (selectedTool === Tool.Edit) {
@@ -206,9 +214,6 @@ function CreatedVectorLayer({
                     if (selectedTool === Tool.Remove) {
                       removeElement(i);
                     }
-                  }}
-                  onDragEnd={(e) => {
-                    handleElementChange({ x: e.target.x(), y: e.target.y() });
                   }}
                 />
               )
