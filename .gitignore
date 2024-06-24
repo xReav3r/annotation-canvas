@@ -12,3 +12,4 @@
 /nginx.conf
 /.dockerignore
 /.package-app.json
+/package-lock.json
