@@ -318,6 +318,7 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
         <Stage
           style={{ overflow: "hidden", cursor }}
           ref={stageRef}
+          draggable={selectedTool === Tool.Move}
           width={stageWidth}
           height={stageHeight}
           onWheel={(e) => {
