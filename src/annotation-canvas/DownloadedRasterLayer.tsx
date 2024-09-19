@@ -27,18 +27,15 @@ function DownloadedRasterLayer({
   const canvasRef = useRef<HTMLCanvasElement>(createRasterCanvas(rasterWidth, rasterHeight));
   const layerRef = useRef<Konva.Layer>(null);
 
-  const urlObjects = useRef([]);
-
   const timer = useRef<NodeJS.Timeout>();
 
   const { getImageCached } = useImageCache();
   const { tiling } = useLayers();
 
-  // Tiling
   useEffect(() => {
     if (rasterWidth === 0 || rasterHeight === 0 || layer.data.getImage === undefined) return;
     const controller = new AbortController();
-    async function loadAndDrawTiles() {
+    async function loadAndDrawScaled() {
       const ctx = canvasRef.current.getContext("2d", {
         willReadFrequently: true,
       });
@@ -199,12 +196,11 @@ function DownloadedRasterLayer({
       }
     }
     // Debounce
-    timer.current = setTimeout(loadAndDrawTiles, 500);
+    timer.current = setTimeout(loadAndDrawScaled, 500);
 
     return () => {
       clearTimeout(timer.current);
       controller.abort();
-      urlObjects.current.forEach((urlObject) => URL.revokeObjectURL(urlObject));
     };
   }, [
     viewport,
@@ -215,22 +211,6 @@ function DownloadedRasterLayer({
     layer.data.hatching,
     layer.data.coloring,
   ]);
-
-  // No tiling
-  useEffect(() => {
-    if (layer.data.image === undefined) return;
-    async function drawImage() {
-      const ctx = canvasRef.current.getContext("2d");
-      if (ctx === null) throw "DownloadedRasterLayer ctx - null";
-
-      const urlObject = URL.createObjectURL(layer.data.image as Blob);
-      const image = await loadImage(urlObject);
-      URL.revokeObjectURL(urlObject);
-      ctx.drawImage(image, 0, 0);
-    }
-
-    drawImage();
-  }, []);
 
   return (
     <Layer

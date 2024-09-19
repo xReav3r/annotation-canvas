@@ -19,6 +19,17 @@ export enum Tool {
   Floodfill = "floodfill",
   Clear = "clear",
 }
+export const GeneralTools = new Set([Tool.Move, Tool.ZoomIn, Tool.ZoomOut]);
+export const VectorTools = new Set([
+  Tool.Drag,
+  Tool.Edit,
+  Tool.Remove,
+  Tool.Rectangle,
+  Tool.Circle,
+  Tool.Line,
+  Tool.Polygon,
+]);
+export const RasterTools = new Set([Tool.Brush, Tool.Eraser, Tool.Floodfill, Tool.Clear]);
 
 export interface Color {
   r: number;

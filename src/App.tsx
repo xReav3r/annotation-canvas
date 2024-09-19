@@ -291,7 +291,7 @@ function AnnotationCanvasDemo() {
                   opacity: 1,
                   width: 300,
                   height: 200,
-                  onPointerClick: (_) => console.log(10),
+                  onPointerClick: () => console.log("Bounding box click"),
                 },
               ]}
             />

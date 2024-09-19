@@ -73,7 +73,6 @@ export type CreatedVectorLayerCircle = {
 };
 
 export interface DownloadedRasterLayerData {
-  image?: Blob;
   getImage?: GetImage;
   coloring?: number[][];
   threshold?: { min: number; max: number };

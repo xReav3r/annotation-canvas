@@ -13,7 +13,7 @@ import {
   CreatedVectorLayerLine,
   HistoryAction,
 } from "./contexts/LayersContext";
-import { Tool, BrushShape, useTool } from "./contexts/ToolContext";
+import { Tool, BrushShape, useTool, RasterTools } from "./contexts/ToolContext";
 import AnimatedLayer from "./AnimatedLayer";
 import CreatedRasterLayer from "./CreatedRasterLayer";
 import CreatedVectorLayer from "./CreatedVectorLayer";
@@ -934,13 +934,21 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
           {gridEnabled && zoom.scale > gridScale && (
             <Grid width={rasterWidth} height={rasterHeight} viewport={viewport} line={gridLine} />
           )}
-          <Layer ref={rasterCanvasPointerLayerRef} imageSmoothingEnabled={false} listening={false}>
-            <Image
-              image={
-                rasterCanvasPointerRef.current !== null ? rasterCanvasPointerRef.current : undefined
-              }
-            />
-          </Layer>
+          {RasterTools.has(selectedTool) && (
+            <Layer
+              ref={rasterCanvasPointerLayerRef}
+              imageSmoothingEnabled={false}
+              listening={false}
+            >
+              <Image
+                image={
+                  rasterCanvasPointerRef.current !== null
+                    ? rasterCanvasPointerRef.current
+                    : undefined
+                }
+              />
+            </Layer>
+          )}
           {contoursBoundingBoxes.length > 0 && (
             <Layer>
               {contoursBoundingBoxes.map((contour) => {
@@ -989,7 +997,7 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
                 />
               );} */}
           {polygonHelper.length > 0 && (
-            // TODO - context maybe
+            // TODO - use context maybe
             <PolygonHelperLayer
               stageWidth={stageWidth}
               stageHeight={stageHeight}

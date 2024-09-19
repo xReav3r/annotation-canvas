@@ -27,13 +27,11 @@ function CreatedRasterLayer({
     if (layerRef.current === null) throw "ctx from layerRef is null";
 
     if (image !== null && image.size > 0) {
-      const urlObject = URL.createObjectURL(image);
-      loadImage(urlObject).then((image) => {
+      createImageBitmap(image).then((bitmap) => {
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-        ctx.drawImage(image, 0, 0);
+        ctx.drawImage(bitmap, 0, 0);
         getAndSetContoursBoundingBoxes(canvasRef.current);
         layerRef.current?.batchDraw();
-        URL.revokeObjectURL(urlObject);
       });
     } else {
       ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);

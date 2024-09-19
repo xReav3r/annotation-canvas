@@ -39,16 +39,6 @@ const ImageCacheProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  const canvas = useRef<HTMLCanvasElement>();
-
-  useEffect(() => {
-    canvas.current = document.createElement("canvas");
-
-    return () => {
-      canvas.current?.remove();
-    };
-  }, []);
-
   async function getImageCached(
     getImage: GetImage,
     x: number,
@@ -67,25 +57,10 @@ const ImageCacheProvider = ({ children }: { children: ReactNode }) => {
     if (item !== null) return item;
 
     const imageData = await getImage(x, y, width, height, viewWidth, viewHeight, signal);
-
     // getImage has been canceled because of zoom change
     if (imageData === null) return null;
 
-    const urlObject = URL.createObjectURL(imageData);
-
-    const image = await loadImage(urlObject);
-
-    URL.revokeObjectURL(urlObject);
-
-    if (canvas.current === undefined) throw "ImageCache canvas undefined";
-    canvas.current.width = viewWidth;
-    canvas.current.height = viewHeight;
-
-    const ctx = canvas.current.getContext("2d");
-    if (ctx === null) throw "ImageCache canvas ctx null";
-
-    ctx.drawImage(image, 0, 0);
-    const bitmap = await createImageBitmap(canvas.current);
+    const bitmap = await createImageBitmap(imageData);
 
     // Do not await - faster drawing
     cache.current.setItem(key, bitmap).catch((err) => {
