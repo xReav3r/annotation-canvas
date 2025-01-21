@@ -33,7 +33,7 @@ function PolygonHelperLayer({
   setDragging: (value: boolean) => void;
   resetPolygon: () => void;
 }) {
-  const { drawColor, toolSize } = useTool();
+  const { drawColor, toolSize, fillColor } = useTool();
   const { rasterWidth, rasterHeight, setLayerByIndex, selectedLayer, historyPush } = useLayers();
 
   return (
@@ -97,6 +97,7 @@ function PolygonHelperLayer({
                       y: polygonHelperOffset.y,
                       points: pointsObjectsToArray(polygonHelper),
                       stroke: rgbaToString(drawColor),
+                      fill: fillColor ? rgbaToString(fillColor) : undefined,
                       strokeWidth: toolSize,
                       closed: true,
                       opacity: drawColor.a,

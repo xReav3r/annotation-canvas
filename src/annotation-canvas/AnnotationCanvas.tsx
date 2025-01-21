@@ -82,7 +82,7 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
     },
     ref,
   ) {
-    const { selectedTool, drawColor, toolSize, brushShape } = useTool();
+    const { selectedTool, drawColor, toolSize, brushShape, fillColor } = useTool();
 
     const {
       rasterWidth,
@@ -384,6 +384,7 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
                   width: 0,
                   height: 0,
                   stroke: rgbaToString(drawColor),
+                  fill: fillColor ? rgbaToString(fillColor) : undefined,
                   strokeWidth: toolSize,
                   opacity: drawColor.a,
                 });
@@ -404,6 +405,7 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
                   y: pointerPosition.y,
                   radius: 0,
                   stroke: rgbaToString(drawColor),
+                  fill: fillColor ? rgbaToString(fillColor) : undefined,
                   strokeWidth: toolSize,
                   opacity: drawColor.a,
                 });
@@ -423,6 +425,7 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
                   y: 0,
                   points: [pointerPosition.x, pointerPosition.y],
                   stroke: rgbaToString(drawColor),
+                  fill: fillColor ? rgbaToString(fillColor) : undefined,
                   strokeWidth: toolSize,
                   opacity: drawColor.a,
                   lineCap: "round",
@@ -735,6 +738,7 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
           onPointerClick={(e) => {
             const stage = e.target.getStage();
             if (stage === null) throw "onMouseDown - stage null";
+            // TODO BUG: if rectangle / circle / line selected and clicked, history updates, but nothings drawn
 
             const { pointerPosition } = getBoundedRelativePointer(stage, rasterWidth, rasterHeight);
 

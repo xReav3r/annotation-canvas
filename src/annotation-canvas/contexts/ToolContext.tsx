@@ -13,6 +13,7 @@ export enum Tool {
   Circle = "circle",
   Line = "line",
   Polygon = "polygon",
+  ChangeFill = "changeFill",
   // Raster
   Brush = "brush",
   Eraser = "eraser",
@@ -28,6 +29,7 @@ export const VectorTools = new Set([
   Tool.Circle,
   Tool.Line,
   Tool.Polygon,
+  Tool.ChangeFill,
 ]);
 export const RasterTools = new Set([Tool.Brush, Tool.Eraser, Tool.Floodfill, Tool.Clear]);
 
@@ -48,6 +50,8 @@ interface IToolContext {
   setSelectedTool: React.Dispatch<React.SetStateAction<Tool>>;
   drawColor: Color;
   setDrawColor: React.Dispatch<React.SetStateAction<Color>>;
+  fillColor: Color | undefined;
+  setFillColor: React.Dispatch<React.SetStateAction<Color | undefined>>;
   toolSize: number;
   setToolSize: React.Dispatch<React.SetStateAction<number>>;
   brushShape: BrushShape;
@@ -61,6 +65,7 @@ const ToolProvider = ({ children }: { children: ReactNode }) => {
   const [drawColor, setDrawColor] = useState({ r: 0, g: 0, b: 0, a: 1.0 });
   const [toolSize, setToolSize] = useState(10);
   const [brushShape, setBrushShape] = useState(BrushShape.Circle);
+  const [fillColor, setFillColor] = useState<Color | undefined>(undefined);
 
   return (
     <ToolContext.Provider
@@ -69,6 +74,8 @@ const ToolProvider = ({ children }: { children: ReactNode }) => {
         setSelectedTool,
         drawColor,
         setDrawColor,
+        fillColor,
+        setFillColor,
         toolSize,
         setToolSize,
         brushShape,

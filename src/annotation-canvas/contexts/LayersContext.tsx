@@ -43,6 +43,7 @@ export type CreatedVectorLayerLine = {
   x: number;
   y: number;
   stroke: string;
+  fill: string | undefined;
   strokeWidth: number;
   opacity: number;
   closed?: boolean;
@@ -56,6 +57,7 @@ export type CreatedVectorLayerRectangle = {
   x: number;
   y: number;
   stroke: string;
+  fill: string | undefined;
   strokeWidth: number;
   opacity: number;
   width: number;
@@ -67,6 +69,7 @@ export type CreatedVectorLayerCircle = {
   x: number;
   y: number;
   stroke: string;
+  fill: string | undefined;
   strokeWidth: number;
   opacity: number;
   radius: number;
@@ -516,8 +519,8 @@ const LayersProvider = ({
         },
       } as CreatedRasterLayer;
       setLayerByIndex(index, newLayer);
-    }
   }
+}
 
   function rasterizeLayer(index: number) {
     const vectorLayer = layers[index];
@@ -538,7 +541,7 @@ const LayersProvider = ({
         selectedLayerType,
 
         tiling,
-
+        
         createLayer,
         setLayerByIndex,
         setLayerById,
