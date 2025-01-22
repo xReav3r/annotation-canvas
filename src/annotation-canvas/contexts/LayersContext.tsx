@@ -176,6 +176,7 @@ const LayersProvider = ({
   rasterHeight,
   layers: propsLayers,
   setLayers: setPropsLayers,
+  onHistoryChange,
   defaultLayers,
   tiling,
 }: {
@@ -184,6 +185,7 @@ const LayersProvider = ({
   rasterHeight: number;
   layers?: Layer[];
   setLayers?: React.Dispatch<React.SetStateAction<Layer[]>>;
+  onHistoryChange?: () => void;
   defaultLayers?: Layer[];
   tiling?: {
     downloadedRasterLevelSize: number;
@@ -295,6 +297,7 @@ const LayersProvider = ({
       });
     }
 
+    onHistoryChange?.();
     historyIndex.current = -1;
     calculateUndoRedoAvailability();
   }
@@ -353,6 +356,7 @@ const LayersProvider = ({
         _removeLayerById(historyRecord.layer.id);
         _createLayer(historyRecord.layer);
     }
+    onHistoryChange?.();
   }
 
   async function applyRedo() {
@@ -380,6 +384,7 @@ const LayersProvider = ({
         const index = layers?.findIndex((iLayer) => iLayer.id === recordCopy.layer.id);
         _rasterizeLayer(index);
     }
+    onHistoryChange?.();
   }
 
   async function undo() {
