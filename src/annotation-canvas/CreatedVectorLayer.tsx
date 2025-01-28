@@ -73,23 +73,26 @@ function CreatedVectorLayer({
   } | null>(null);
 
   function changeElementFill(i: number) {
-    // if the element already has the same color as selected, do nothing
-    // if the element has a different color, change it to selected
-    // if the selected color is none, remove the fill
     const newElements = [...layer.data.elements];
     const element = newElements[i];
+
+    // if the element already has no color (no fill), do nothing
     if (fillColor === undefined && element.fill === undefined) {
       return;
     }
+    // if the element already has the same color as the new one, do nothing
     if (fillColor !== undefined && element.fill === rgbaToString(fillColor)) {
       return;
     }
-    if (fillColor !== undefined && element.fill !== rgbaToString(fillColor)) {
-        element.fill = rgbaToString(fillColor);
-    }
+    // if the new color is undefined, remove the fill
     if (fillColor === undefined && element.fill !== undefined) {
       element.fill = undefined;
     }
+    // if the new color is different from the current one, change it
+    else if (fillColor !== undefined && element.fill !== rgbaToString(fillColor)) {
+        element.fill = rgbaToString(fillColor);
+    }
+    
 
     const newLayer = {
       ...layer,
@@ -208,9 +211,9 @@ function CreatedVectorLayer({
                 onChangeEnd={(newRect) => {
                   handleElementChange(newRect, i);
                 }}
-                toggleElementFill={() => {
-                  changeElementFill(i);
-                }}
+                changeElementFill={() =>
+                  changeElementFill(i)
+                }
               />
             );
           case ElementType.Circle:
