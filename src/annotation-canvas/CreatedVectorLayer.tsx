@@ -11,7 +11,7 @@ import {
 } from "./contexts/LayersContext";
 import { Tool, useTool } from "./contexts/ToolContext";
 
-import { getBoundedRelativePointer, pointToLineDistance, pointsArrayToObjects } from "./utils";
+import { getBoundedRelativePointer, pointToLineDistance, pointsArrayToObjects, rgbaToString } from "./utils";
 import { KonvaEventObject } from "konva/lib/Node";
 import EditableRectangle from "./components/EditableRectangle";
 import _ from "lodash";
@@ -33,7 +33,7 @@ function CreatedVectorLayer({
   const layerRef = useRef<Konva.Layer>(null);
   const polygonGroupRef = useRef<Konva.Group>(null);
 
-  const { selectedTool } = useTool();
+  const { selectedTool, fillColor } = useTool();
   const { setLayerById, rasterWidth, rasterHeight, selectedLayer, historyPush } = useLayers();
 
   useEffect(() => {
@@ -71,6 +71,42 @@ function CreatedVectorLayer({
     };
     pointIndex: number;
   } | null>(null);
+
+  function changeElementFill(i: number) {
+    const newElements = [...layer.data.elements];
+    const element = newElements[i];
+
+    // if the element already has no color (no fill), do nothing
+    if (fillColor === undefined && element.fill === undefined) {
+      return;
+    }
+    // if the element already has the same color as the new one, do nothing
+    if (fillColor !== undefined && element.fill === rgbaToString(fillColor)) {
+      return;
+    }
+    // if the new color is undefined, remove the fill
+    if (fillColor === undefined && element.fill !== undefined) {
+      element.fill = undefined;
+    }
+    // if the new color is different from the current one, change it
+    else if (fillColor !== undefined && element.fill !== rgbaToString(fillColor)) {
+        element.fill = rgbaToString(fillColor);
+    }
+    
+
+    const newLayer = {
+      ...layer,
+      data: {
+        ...layer.data,
+        elements: newElements,
+      },
+    };
+    historyPush({
+      action: HistoryAction.edit,
+      layer: newLayer,
+    });
+    setLayerById(newLayer);
+  }
 
   function removeElement(i: number) {
     const newLayer = { ...layer };
@@ -175,6 +211,9 @@ function CreatedVectorLayer({
                 onChangeEnd={(newRect) => {
                   handleElementChange(newRect, i);
                 }}
+                changeElementFill={() =>
+                  changeElementFill(i)
+                }
               />
             );
           case ElementType.Circle:
@@ -190,6 +229,9 @@ function CreatedVectorLayer({
                   e.cancelBubble = true;
                   if (selectedTool === Tool.Remove) {
                     removeElement(i);
+                  }
+                  if (selectedTool === Tool.ChangeFill) {
+                    changeElementFill(i);
                   }
                 }}
               />
@@ -213,6 +255,9 @@ function CreatedVectorLayer({
 
                     if (selectedTool === Tool.Remove) {
                       removeElement(i);
+                    }
+                    if (selectedTool === Tool.ChangeFill) {
+                      changeElementFill(i);
                     }
                   }}
                 />

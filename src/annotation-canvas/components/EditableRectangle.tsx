@@ -10,6 +10,7 @@ function EditableRectangle({
   isSelected,
   setEditedElementIndexState,
   removeElement,
+  changeElementFill,
   onChangeEnd,
 }: {
   zoom: {
@@ -20,6 +21,7 @@ function EditableRectangle({
   isSelected: boolean;
   setEditedElementIndexState: () => void;
   removeElement: () => void;
+  changeElementFill: () => void;
   onChangeEnd: ({
     x,
     y,
@@ -63,6 +65,9 @@ function EditableRectangle({
 
           if (selectedTool === Tool.Remove) {
             removeElement();
+          }
+          if (selectedTool === Tool.ChangeFill) {
+            changeElementFill();
           }
         }}
         dragBoundFunc={(node) => {
