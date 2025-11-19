@@ -1,5 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
-
 import { LayerType, useLayers } from "./annotation-canvas/";
 
 import { Button, Paper, Typography } from "@mui/material";
@@ -40,7 +38,7 @@ function Layers() {
         <Button
           variant="contained"
           onClick={() => {
-            const id = uuidv4();
+            const id = crypto.randomUUID();
             createLayer({
               id,
               visible: true,
@@ -55,7 +53,7 @@ function Layers() {
         <Button
           variant="contained"
           onClick={() => {
-            const id = uuidv4();
+            const id = crypto.randomUUID();
             createLayer({
               id,
               visible: true,

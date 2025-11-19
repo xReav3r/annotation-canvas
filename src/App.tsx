@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 
-import { v4 as uuid } from "uuid";
-
 import {
   AnnotationCanvas,
   LayersProvider,
@@ -171,7 +169,7 @@ function App() {
     const interval = setInterval(() => {
       setLayers([
         {
-          id: uuid(),
+          id: crypto.randomUUID(),
           type: LayerType.downloadedRaster,
           visible: true,
           opacity: 1,
