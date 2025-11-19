@@ -1,6 +1,6 @@
 {
   "name": "annotation-canvas",
-  "version": "0.45.0",
+  "version": "0.45.1",
   "description": "A powerful React canvas component for image annotation with raster and vector drawing tools. Features efficient tiling for large images, built with Konva.",
   "author": "Martin Schneider <martin.schneider@codetopic.eu>",
   "license": "MIT",
