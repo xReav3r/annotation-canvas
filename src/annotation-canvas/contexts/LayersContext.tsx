@@ -7,6 +7,7 @@ import _ from "lodash";
 import { GetImage } from "./ImageCacheContext";
 import { toBlob } from "../utils";
 import localforage from "localforage";
+import { TileConfig } from "../../tiling";
 
 export enum ElementType {
   Line = "line",
@@ -29,7 +30,7 @@ export type CreatedRasterLayerData = {
 
 export interface CreatedVectorLayerData {
   elements: (CreatedVectorLayerLine | CreatedVectorLayerRectangle | CreatedVectorLayerCircle)[];
-  forcedEditElementIndex: number;
+  forcedEditElementIndex?: number;
   initElements?: (
     | CreatedVectorLayerLine
     | CreatedVectorLayerRectangle
@@ -96,7 +97,7 @@ export enum LayerType {
 }
 
 interface GenericLayer<Type, DataType> {
-  id: any;
+  id: string | number;
   type: Type;
   visible: boolean;
   opacity: number;
@@ -148,19 +149,13 @@ interface ILayersContext {
   setSelectedLayer: React.Dispatch<React.SetStateAction<number>>;
   selectedLayerType: LayerType | undefined;
 
-  tiling:
-    | undefined
-    | {
-        downloadedRasterLevelSize: number; // Scale interval between tile levels
-        downloadedRasterMinTilesCount: number; // Minimal tile count on bigger side of viewport
-        downloadedRasterDrawAtOnce: boolean;
-      };
+  tiling: TileConfig | undefined;
 
   createLayer: (layer: Layer) => void;
   setLayerByIndex: (index: number, value: ((prev: Layer) => Layer) | Layer) => void;
   setLayerById: (layer: Layer) => void;
   removeLayer: (index: number) => Promise<void>;
-  removeLayerById: (id: any) => void;
+  removeLayerById: (id: string | number) => void;
   rasterizeLayer: (index: number) => void;
 
   historyPush: (record: HistoryRecord, rasterImage?: Blob) => void;
@@ -190,11 +185,7 @@ const LayersProvider = ({
   setLayers?: React.Dispatch<React.SetStateAction<Layer[]>>;
   onHistoryChange?: () => void;
   defaultLayers?: Layer[];
-  tiling?: {
-    downloadedRasterLevelSize: number;
-    downloadedRasterMinTilesCount: number;
-    downloadedRasterDrawAtOnce: boolean;
-  };
+  tiling?: TileConfig;
 }) => {
   // Controlled and uncontrolled layers support
   if (propsLayers !== undefined && setPropsLayers !== undefined && defaultLayers !== undefined) {
@@ -209,7 +200,7 @@ const LayersProvider = ({
 
   let layers = internalLayers;
   if (propsLayers === undefined && setPropsLayers !== undefined) {
-    throw "annotation-canvas - LayersProvider: setLayers provided, but not layers. Use defaultLayers if component is intended to be non controlled.";
+    throw new Error("annotation-canvas - LayersProvider: setLayers provided, but not layers. Use defaultLayers if component is intended to be non controlled.");
   }
   if (propsLayers !== undefined) {
     layers = propsLayers;
@@ -471,7 +462,7 @@ const LayersProvider = ({
     _removeLayer(index);
   }
 
-  function _removeLayerById(id: any) {
+  function _removeLayerById(id: string | number) {
     const foundLayerIndex = layers.findIndex((layer) => layer.id === id);
     if (foundLayerIndex !== -1) {
       setLayers((prev) => {
@@ -481,7 +472,7 @@ const LayersProvider = ({
       });
     }
   }
-  async function removeLayerById(id: any) {
+  async function removeLayerById(id: string | number) {
     const foundLayerIndex = layers.findIndex((layer) => layer.id === id);
     if (foundLayerIndex !== -1) {
       const layer = layers[foundLayerIndex];
@@ -570,7 +561,7 @@ const LayersProvider = ({
 function useLayers() {
   const context = useContext(LayersContext);
   if (context === null) {
-    throw "No provider for LayersContext";
+    throw new Error("No provider for LayersContext");
   }
 
   return context;

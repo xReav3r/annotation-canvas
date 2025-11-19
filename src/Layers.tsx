@@ -2,9 +2,9 @@ import { v4 as uuidv4 } from "uuid";
 
 import { LayerType, useLayers } from "./annotation-canvas/";
 
-import { Button, Paper, Typography, colors } from "@mui/material";
+import { Button, Paper, Typography } from "@mui/material";
 
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import VisibilityIcon from "@mui/icons-material/Visibility";

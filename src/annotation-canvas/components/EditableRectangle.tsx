@@ -34,8 +34,8 @@ function EditableRectangle({
     height?: number;
   }) => void;
 }) {
-  const shapeRef = useRef<Konva.Rect>();
-  const transformerRef = useRef<Konva.Transformer>();
+  const shapeRef = useRef<Konva.Rect>(null);
+  const transformerRef = useRef<Konva.Transformer>(null);
 
   const { rasterWidth, rasterHeight } = useLayers();
   const { selectedTool } = useTool();
@@ -71,7 +71,7 @@ function EditableRectangle({
           }
         }}
         dragBoundFunc={(node) => {
-          if (!shapeRef.current) return;
+          if (!shapeRef.current) return node;
           const { x, y, width, height } = shapeRef.current.attrs;
 
           const normalizedWidth = width * zoom.scale;

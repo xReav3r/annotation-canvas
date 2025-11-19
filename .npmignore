@@ -1,15 +1,44 @@
-# dependencies
-/node_modules
+# Source files (don't publish, only dist/)
+src/
+backend/
+memoryFrontend/
 
-# production
-/.parcel-cache
-/dist
+# Config files
+tsconfig.json
+tsdown.config.ts
+vite.config.ts
+.nvmrc
+.gitlab-ci.yml
 
-# misc
-/.npmrc
-/.env
-/Dockerfile
-/nginx.conf
-/.dockerignore
-/.package-app.json
-/backend
+# Development
+node_modules/
+.parcel-cache/
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+
+# CI/CD
+.github/
+
+# Tests
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Documentation (README and LICENSE will be included)
+docs/
+
+# Build artifacts (keep dist/ - it will be published)
+*.log
+.DS_Store
+.env
+.env.*
+.npmrc
+Dockerfile
+nginx.conf
+.dockerignore
+.package-app.json

@@ -1,6 +1,12 @@
 import { Dispatch, SetStateAction } from "react";
 import { Circle, Group, Layer, Line } from "react-konva";
-import { getBoundedRelativePointer, pointsObjectsToArray, rgbaToString, stageBound } from "./utils";
+import {
+  createElementStyle,
+  getBoundedRelativePointer,
+  pointsObjectsToArray,
+  rgbaToString,
+  stageBound,
+} from "./utils";
 import {
   CreatedVectorLayer,
   ElementType,
@@ -61,14 +67,14 @@ function PolygonHelperLayer({
           lineJoin="round"
           onPointerEnter={(e) => {
             const stage = e.target.getStage();
-            if (stage === null) throw "polygonHelper - stage null";
+            if (stage === null) throw new Error("stage is null");
             stage.container().style.cursor = "grab";
 
             setDragging(true);
           }}
           onPointerLeave={(e) => {
             const stage = e.target.getStage();
-            if (stage === null) throw "polygonHelper - stage null";
+            if (stage === null) throw new Error("stage is null");
             stage.container().style.cursor = "auto";
 
             setDragging(false);
@@ -96,11 +102,8 @@ function PolygonHelperLayer({
                       x: polygonHelperOffset.x,
                       y: polygonHelperOffset.y,
                       points: pointsObjectsToArray(polygonHelper),
-                      stroke: rgbaToString(drawColor),
-                      fill: fillColor ? rgbaToString(fillColor) : undefined,
-                      strokeWidth: toolSize,
+                      ...createElementStyle(drawColor, toolSize, fillColor),
                       closed: true,
-                      opacity: drawColor.a,
                       lineCap: "round",
                       lineJoin: "round",
                     });
@@ -127,7 +130,7 @@ function PolygonHelperLayer({
               }}
               onDragMove={(e) => {
                 const stage = e.target.getStage();
-                if (stage === null) throw "polygonHelper - stage null";
+                if (stage === null) throw new Error("stage is null");
                 const { pointerPosition, pointerOverflow } = getBoundedRelativePointer(
                   stage,
                   rasterWidth,
@@ -149,14 +152,14 @@ function PolygonHelperLayer({
               }
               onPointerEnter={(e) => {
                 const stage = e.target.getStage();
-                if (stage === null) throw "polygonHelper - stage null";
+                if (stage === null) throw new Error("stage is null");
                 stage.container().style.cursor = "crosshair";
 
                 setDragging(true);
               }}
               onPointerLeave={(e) => {
                 const stage = e.target.getStage();
-                if (stage === null) throw "polygonHelper - stage null";
+                if (stage === null) throw new Error("stage is null");
                 stage.container().style.cursor = "auto";
 
                 setDragging(false);

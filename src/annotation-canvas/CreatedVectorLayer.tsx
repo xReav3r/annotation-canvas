@@ -14,7 +14,6 @@ import { Tool, useTool } from "./contexts/ToolContext";
 import { getBoundedRelativePointer, pointToLineDistance, pointsArrayToObjects, rgbaToString } from "./utils";
 import { KonvaEventObject } from "konva/lib/Node";
 import EditableRectangle from "./components/EditableRectangle";
-import _ from "lodash";
 
 function CreatedVectorLayer({
   layer,
@@ -37,7 +36,7 @@ function CreatedVectorLayer({
   const { setLayerById, rasterWidth, rasterHeight, selectedLayer, historyPush } = useLayers();
 
   useEffect(() => {
-    if (layerRef.current === null) throw "ctx from layerRef is null";
+    if (layerRef.current === null) throw new Error("layerRef is null");
     const newLayer = {
       ...layer,
       data: {
@@ -168,7 +167,7 @@ function CreatedVectorLayer({
   ) {
     e.cancelBubble = true;
     const stage = e.target.getStage();
-    if (stage === null) throw "polygonHelper - stage null";
+    if (stage === null) throw new Error("stage is null");
     const { pointerPosition, pointerOverflow } = getBoundedRelativePointer(
       stage,
       rasterWidth,
@@ -331,14 +330,14 @@ function CreatedVectorLayer({
             }}
             onPointerEnter={(e) => {
               const stage = e.target.getStage();
-              if (stage === null) throw "polygonHelper - stage null";
+              if (stage === null) throw new Error("stage is null");
               stage.container().style.cursor = "grab";
 
               setDragging(true);
             }}
             onPointerMove={(e) => {
               const stage = e.target.getStage();
-              if (stage === null) throw "onMouseDown - stage null";
+              if (stage === null) throw new Error("stage is null");
               const { pointerPosition } = getBoundedRelativePointer(
                 stage,
                 rasterWidth,
@@ -371,7 +370,7 @@ function CreatedVectorLayer({
             }}
             onPointerLeave={(e) => {
               const stage = e.target.getStage();
-              if (stage === null) throw "polygonHelper - stage null";
+              if (stage === null) throw new Error("stage is null");
               stage.container().style.cursor = "auto";
 
               setDragging(false);
@@ -432,12 +431,12 @@ function CreatedVectorLayer({
                 }}
                 onPointerEnter={(e) => {
                   const stage = e.target.getStage();
-                  if (stage === null) throw "polygonHelper - stage null";
+                  if (stage === null) throw new Error("stage is null");
                   stage.container().style.cursor = "crosshair";
                 }}
                 onPointerLeave={(e) => {
                   const stage = e.target.getStage();
-                  if (stage === null) throw "polygonHelper - stage null";
+                  if (stage === null) throw new Error("stage is null");
                   stage.container().style.cursor = "auto";
                 }}
               />

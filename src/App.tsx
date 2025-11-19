@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 
 import { v4 as uuid } from "uuid";
@@ -14,6 +13,7 @@ import {
   useTool,
   Tool,
   Layer,
+  AnnotationCanvasRef,
 } from "./annotation-canvas/";
 import heatmaps from "./heatmaps";
 import Layers from "./Layers";
@@ -21,7 +21,6 @@ import Toolbar from "./Toolbar";
 import { Typography } from "@mui/material";
 
 import config from "../frontendConfig";
-import { AnnotationCanvasRef } from "./annotation-canvas/AnnotationCanvas";
 
 async function getImage1(
   x: number,
@@ -33,26 +32,20 @@ async function getImage1(
   signal?: AbortSignal,
 ) {
   try {
-    const imageResponse = await axios.post(
-      config.backendUrl + "image1",
-      {
-        extract: {
-          x,
-          y,
-          width,
-          height,
-        },
+    const response = await fetch(config.backendUrl + "image1", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        extract: { x, y, width, height },
         resize: { viewWidth, viewHeight },
-      },
-      {
-        signal,
-        responseType: "blob",
-      },
-    );
+      }),
+      signal,
+    });
 
-    return imageResponse.data as Blob;
+    if (!response.ok) return null;
+    return await response.blob();
   } catch (e: any) {
-    if (e?.message === "canceled") return null;
+    if (e?.name === "AbortError") return null;
     throw e;
   }
 }
@@ -67,26 +60,20 @@ async function getImage2(
   signal?: AbortSignal,
 ) {
   try {
-    const imageResponse = await axios.post(
-      config.backendUrl + "image2",
-      {
-        extract: {
-          x,
-          y,
-          width,
-          height,
-        },
+    const response = await fetch(config.backendUrl + "image2", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        extract: { x, y, width, height },
         resize: { viewWidth, viewHeight },
-      },
-      {
-        signal,
-        responseType: "blob",
-      },
-    );
+      }),
+      signal,
+    });
 
-    return imageResponse.data as Blob;
+    if (!response.ok) return null;
+    return await response.blob();
   } catch (e: any) {
-    if (e?.message === "canceled") return null;
+    if (e?.name === "AbortError") return null;
     throw e;
   }
 }
@@ -158,12 +145,13 @@ function App() {
     const controller = new AbortController();
 
     async function loadImageResolution() {
-      const res = await axios.get(config.backendUrl + "image", {
+      const res = await fetch(config.backendUrl + "image", {
         signal: controller.signal,
       });
 
-      setRasterWidth(res.data.width);
-      setRasterHeight(res.data.height);
+      const data = await res.json();
+      setRasterWidth(data.width);
+      setRasterHeight(data.height);
     }
 
     loadImageResolution();
@@ -204,9 +192,9 @@ function App() {
           rasterWidth={rasterWidth}
           rasterHeight={rasterHeight}
           tiling={{
-            downloadedRasterLevelSize: 0.25,
-            downloadedRasterMinTilesCount: 3,
-            downloadedRasterDrawAtOnce: true,
+            levelSize: 0.25,
+            minTilesCount: 3,
+            drawAtOnce: true,
           }}
           layers={layers}
           setLayers={setLayers}
@@ -253,11 +241,12 @@ function AnnotationCanvasDemo() {
     const controller = new AbortController();
 
     async function loadExternalVectorLayer() {
-      const res = await axios.get(config.backendUrl + "svg", {
+      const res = await fetch(config.backendUrl + "svg", {
         signal: controller.signal,
       });
 
-      setSvg(res.data);
+      const data = await res.text();
+      setSvg(data);
     }
 
     loadExternalVectorLayer();

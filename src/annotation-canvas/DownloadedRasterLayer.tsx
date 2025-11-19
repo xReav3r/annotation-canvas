@@ -2,13 +2,13 @@ import Konva from "konva";
 import { useEffect, useRef } from "react";
 import { Image as KonvaImage, Layer } from "react-konva";
 
-import { Viewport } from "./AnnotationCanvas";
 import { GetImage, useImageCache } from "./contexts/ImageCacheContext";
 import {
   DownloadedRasterLayer as IDownloadedRasterLayer,
   useLayers,
 } from "./contexts/LayersContext";
-import { createRasterCanvas, loadImage } from "./utils";
+import { iterateTiles, Viewport } from "../tiling";
+import { createRasterCanvas } from "./utils";
 
 function DownloadedRasterLayer({
   layer,
@@ -47,7 +47,7 @@ function DownloadedRasterLayer({
         bitmapWidth: number,
         bitmapHeight: number,
       ) {
-        if (ctx === null) throw "DownloadedRasterLayer ctx - null";
+        if (ctx === null) throw new Error("DownloadedRasterLayer ctx is null");
 
         if (bitmap === null) return;
         ctx.clearRect(bitmapX, bitmapY, bitmapWidth, bitmapHeight);
@@ -60,7 +60,7 @@ function DownloadedRasterLayer({
           if (threshold === undefined) {
             threshold = { min: 0, max: 255 };
           } else if (threshold.min < 0 || threshold.max > 255 || threshold.max < threshold.min)
-            throw "Invalid DownloadedRasterLayer threshold values. Valid range is 0 - 255 and min must be lesser or equal to max.";
+            throw new Error("Invalid DownloadedRasterLayer threshold values. Valid range is 0 - 255 and min must be lesser or equal to max.");
 
           const thresholdRange = threshold.max - threshold.min;
           const thresholdRatio = Math.trunc(255 / thresholdRange);
@@ -117,79 +117,58 @@ function DownloadedRasterLayer({
       const initScale = Math.min(stageWidth / rasterWidth, stageHeight / rasterHeight);
 
       if (tiling === undefined) {
-        if (layer.data.getImage === undefined) throw "DownloadedRasterLayer getImage - undefined";
-        const x = viewport.x1;
-        const y = viewport.y1;
-        const width = viewport.x2 - viewport.x1;
-        const height = viewport.y2 - viewport.y1;
-        if (width <= 0 || height <= 0) return;
+        if (layer.data.getImage === undefined) throw new Error("DownloadedRasterLayer getImage is undefined");
+        if (viewport.width <= 0 || viewport.height <= 0) return;
 
         const boundedScale = Math.max(Math.min(scale, 1.0), initScale);
         const blob = await layer.data.getImage(
-          x,
-          y,
-          width,
-          height,
-          Math.ceil(width * boundedScale),
-          Math.ceil(height * boundedScale),
+          viewport.x,
+          viewport.y,
+          viewport.width,
+          viewport.height,
+          Math.ceil(viewport.width * boundedScale),
+          Math.ceil(viewport.height * boundedScale),
         );
         if (blob === null) return;
         const bitmap = await createImageBitmap(blob);
-        drawBitmap(bitmap, x, y, width, height);
+        drawBitmap(bitmap, viewport.x, viewport.y, viewport.width, viewport.height);
         layerRef.current?.batchDraw();
       } else {
-        const boundedScale = Math.max(
-          Math.min(scale, 1.0 - tiling.downloadedRasterLevelSize),
-          initScale,
-        );
-
-        const currentLevelScale =
-          Math.trunc(boundedScale / tiling.downloadedRasterLevelSize) *
-            tiling.downloadedRasterLevelSize +
-          tiling.downloadedRasterLevelSize;
-
-        const tileSizeStage = Math.ceil(
-          Math.max(stageWidth, stageHeight) / tiling.downloadedRasterMinTilesCount,
-        );
-        const tileSize = Math.ceil(tileSizeStage / currentLevelScale);
 
         const promises: Promise<undefined>[] = [];
-        for (
-          let tileX = Math.trunc(viewport.x1 / tileSize);
-          tileX <= Math.trunc(viewport.x2 / tileSize);
-          tileX++
-        ) {
-          for (
-            let tileY = Math.trunc(viewport.y1 / tileSize);
-            tileY <= Math.trunc(viewport.y2 / tileSize);
-            tileY++
-          ) {
-            const tileWidth = Math.min(rasterWidth - tileSize * tileX, tileSize);
-            const tileHeight = Math.min(rasterHeight - tileSize * tileY, tileSize);
-
-            const promise = new Promise<undefined>((resolve) => {
-              getImageCached(
-                layer.data.getImage as GetImage,
-                tileX * tileSize,
-                tileY * tileSize,
-                tileWidth,
-                tileHeight,
-                Math.ceil(tileWidth * currentLevelScale),
-                Math.ceil(tileHeight * currentLevelScale),
-                controller.signal,
-                layer.id,
-              ).then((bitmap) => {
-                drawBitmap(bitmap, tileX * tileSize, tileY * tileSize, tileWidth, tileHeight);
-                resolve(undefined);
-                if (!tiling.downloadedRasterDrawAtOnce) {
-                  layerRef.current?.batchDraw();
-                }
-              });
+        // Use generator to iterate tiles efficiently without creating intermediate array
+        for (const tile of iterateTiles(
+          viewport,
+          scale,
+          stageWidth,
+          stageHeight,
+          rasterWidth,
+          rasterHeight,
+          tiling.levelSize,
+          tiling.minTilesCount
+        )) {
+          const promise = new Promise<undefined>((resolve) => {
+            getImageCached(
+              layer.data.getImage as GetImage,
+              tile.x,
+              tile.y,
+              tile.width,
+              tile.height,
+              Math.ceil(tile.width * tile.level),
+              Math.ceil(tile.height * tile.level),
+              controller.signal,
+              layer.id,
+            ).then((bitmap) => {
+              drawBitmap(bitmap, tile.x, tile.y, tile.width, tile.height);
+              resolve(undefined);
+              if (!tiling.drawAtOnce) {
+                layerRef.current?.batchDraw();
+              }
             });
-            promises.push(promise);
-          }
+          });
+          promises.push(promise);
         }
-        if (tiling.downloadedRasterDrawAtOnce) {
+        if (tiling.drawAtOnce) {
           await Promise.all(promises);
           layerRef.current?.batchDraw();
         }

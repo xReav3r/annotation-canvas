@@ -85,7 +85,7 @@ const ImageCacheProvider = ({ children }: { children: ReactNode }) => {
 function useImageCache() {
   const context = useContext(ImageCacheContext);
   if (context === null) {
-    throw "No provider for ImageCacheContext";
+    throw new Error("No provider for ImageCacheContext");
   }
 
   return context;

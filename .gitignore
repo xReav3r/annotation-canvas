@@ -1,8 +1,7 @@
 # dependencies
 /node_modules
 
-# production
-/.parcel-cache
+# production build (don't commit, will be built in CI)
 /dist
 
 # misc
@@ -13,3 +12,8 @@
 /.dockerignore
 /.package-app.json
 /package-lock.json
+.DS_Store
+
+# IDE
+.vscode/
+.idea/

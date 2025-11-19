@@ -1,7 +1,7 @@
 import Konva from "konva";
 import { useMemo, useRef } from "react";
 import { Layer, Line } from "react-konva";
-import { Viewport } from "./AnnotationCanvas";
+import { Viewport } from "../tiling";
 
 function Grid({
   width,
@@ -18,16 +18,20 @@ function Grid({
 
   const horizontalLines = useMemo(() => {
     const lines: JSX.Element[] = [];
-    for (let i = viewport.y1; i <= viewport.y2; i++) {
-      lines.push(<Line key={i} {...line} points={[viewport.x1, i, viewport.x2, i]} />);
+    const x2 = viewport.x + viewport.width;
+    const y2 = viewport.y + viewport.height;
+    for (let i = viewport.y; i <= y2; i++) {
+      lines.push(<Line key={i} {...line} points={[viewport.x, i, x2, i]} />);
     }
     return lines;
   }, [viewport, width, height]);
 
   const verticalLines = useMemo(() => {
     const lines: JSX.Element[] = [];
-    for (let i = viewport.x1; i <= viewport.x2; i++) {
-      lines.push(<Line key={i} {...line} points={[i, viewport.y1, i, viewport.y2]} />);
+    const x2 = viewport.x + viewport.width;
+    const y2 = viewport.y + viewport.height;
+    for (let i = viewport.x; i <= x2; i++) {
+      lines.push(<Line key={i} {...line} points={[i, viewport.y, i, y2]} />);
     }
     return lines;
   }, [viewport, width, height]);

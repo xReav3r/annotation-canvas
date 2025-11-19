@@ -90,7 +90,7 @@ const ToolProvider = ({ children }: { children: ReactNode }) => {
 function useTool() {
   const context = useContext(ToolContext);
   if (context === null) {
-    throw "No provider for ToolContext";
+    throw new Error("No provider for ToolContext");
   }
 
   return context;

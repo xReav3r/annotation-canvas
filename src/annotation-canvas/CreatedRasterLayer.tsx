@@ -23,8 +23,8 @@ function CreatedRasterLayer({
 
   function drawImage(image: Blob | null) {
     const ctx = canvasRef.current.getContext("2d");
-    if (ctx === null) throw "ctx from canvasRef is null";
-    if (layerRef.current === null) throw "ctx from layerRef is null";
+    if (ctx === null) throw new Error("ctx from canvasRef is null");
+    if (layerRef.current === null) throw new Error("layerRef is null");
 
     if (image !== null && image.size > 0) {
       createImageBitmap(image).then((bitmap) => {
@@ -41,8 +41,8 @@ function CreatedRasterLayer({
   }
   useEffect(() => {
     const ctx = canvasRef.current.getContext("2d");
-    if (ctx === null) throw "ctx from canvasRef is null";
-    if (layerRef.current === null) throw "ctx from layerRef is null";
+    if (ctx === null) throw new Error("ctx from canvasRef is null");
+    if (layerRef.current === null) throw new Error("layerRef is null");
 
     if (layer.data?.initImage) drawImage(layer.data.initImage);
     setLayerById({

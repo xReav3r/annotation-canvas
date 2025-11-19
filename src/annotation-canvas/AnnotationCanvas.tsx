@@ -22,7 +22,6 @@ import DownloadedVectorLayer from "./DownloadedVectorLayer";
 import Grid from "./Grid";
 import {
   absoluteRectangle,
-  calculateViewport,
   createRasterCanvas,
   drawFilledCircleLine,
   drawFilledSquareLine,
@@ -32,6 +31,7 @@ import {
   stageBound,
   toBlob,
 } from "./utils";
+import { calculateViewport, Viewport } from "../tiling";
 import PolygonHelperLayer from "./PolygonHelperLayers";
 import { RectConfig } from "konva/lib/shapes/Rect";
 
@@ -44,13 +44,6 @@ interface PixelData {
 export interface Zoom {
   scale: number;
   position: { x: number; y: number };
-}
-
-export interface Viewport {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
 }
 
 export type AnnotationCanvasRef = {
@@ -132,10 +125,10 @@ const AnnotationCanvas = forwardRef<AnnotationCanvasRef, IAnnotationCanvas>(
     }, [rasterWidth, rasterHeight]);
 
     const [viewport, setViewport] = useState<Viewport>({
-      x1: 0,
-      y1: 0,
-      x2: 0,
-      y2: 0,
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
     });
 
     const changeZoom = useCallback(
